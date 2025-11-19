@@ -1,62 +1,3 @@
----
-layout: base
-title: Whack-a-Bug
-permalink: /whack-a-bug
----
-
-<style>
-#grid {
-  width: 330px;
-  margin: 20px auto;
-  display: grid;
-  grid-template-columns: repeat(3, 100px);
-  gap: 10px;
-}
-
-.square {
-  width: 100px;
-  height: 100px;
-  background: #fff;
-  border: 3px solid #9b59b6;
-  border-radius: 10px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 50px;
-  cursor: pointer;
-  transition: background 0.2s;
-}
-
-.bug {
-  font-size: 50px;
-}
-
-#score, #timer {
-  font-size: 20px;
-  margin: 10px;
-}
-
-#startBtn {
-  margin-top: 20px;
-  padding: 10px 20px;
-  font-size: 18px;
-  background: #9b59b6;
-  color: white;
-  border: none;
-  border-radius: 8px;
-  cursor: pointer;
-}
-</style>
-
-<div id="gameContainer">
-  <h1>Whack-a-Bug</h1>
-  <div id="score">Score: 0</div>
-  <div id="timer">Time: 30</div>
-  <button id="startBtn">Start Game</button>
-  <div id="grid"></div>
-</div>
-
-<script>
 const grid = document.getElementById("grid");
 const scoreDisplay = document.getElementById("score");
 const timerDisplay = document.getElementById("timer");
@@ -134,4 +75,3 @@ function endGame() {
 }
 
 startBtn.addEventListener("click", startGame);
-</script>
