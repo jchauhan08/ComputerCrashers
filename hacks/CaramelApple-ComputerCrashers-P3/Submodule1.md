@@ -1,6 +1,6 @@
 ---
 layout: post
-title: Candyland Maze Adventure
-authors: Jaynee Chauhan
-permalink: /candyland/maze
+title: Morning Routine Game 
+authors: Anika Marathe
+permalink: /candyland/morningroutine
 ---
