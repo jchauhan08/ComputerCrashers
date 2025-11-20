@@ -6,6 +6,29 @@ permalink: /whack-a-bug
 ---
 
 <style>
+body {
+  background: #ffe6f2;
+  font-family: "Comic Sans MS", cursive;
+  text-align: center;
+}
+
+#gameContainer {
+  padding: 20px;
+  background: #fff0fa;
+  border: 4px solid #ffb3e6;
+  border-radius: 20px;
+  width: 400px;
+  margin: 20px auto;
+  box-shadow: 0 0 20px #ffccf9;
+}
+
+h1 {
+  color: #ff69b4;
+  text-shadow: 2px 2px #ffc6e9;
+  font-size: 40px;
+  margin-bottom: 10px;
+}
+
 #grid {
   width: 330px;
   margin: 20px auto;
@@ -17,40 +40,56 @@ permalink: /whack-a-bug
 .square {
   width: 100px;
   height: 100px;
-  background: #fff;
-  border: 3px solid #9b59b6;
-  border-radius: 10px;
+  background: #ffe1f7;
+  border: 3px solid #ffb3e6;
+  border-radius: 20px;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 50px;
+  font-size: 55px;
   cursor: pointer;
-  transition: background 0.2s;
+  transition: 0.2s;
+}
+
+.square:hover {
+  background: #ffd6f4;
 }
 
 .bug {
-  font-size: 50px;
+  font-size: 55px;
 }
 
 #score, #timer {
-  font-size: 20px;
+  font-size: 22px;
   margin: 10px;
+  color: #ff5ca8;
+  font-weight: bold;
 }
 
 #startBtn {
-  margin-top: 20px;
-  padding: 10px 20px;
-  font-size: 18px;
-  background: #9b59b6;
+  margin-top: 15px;
+  padding: 12px 25px;
+  font-size: 20px;
+  background: #ff85c2;
   color: white;
   border: none;
-  border-radius: 8px;
+  border-radius: 12px;
   cursor: pointer;
+  box-shadow: 0 4px #ff5ca8;
+}
+
+#startBtn:hover {
+  background: #ff6bb5;
+}
+
+#startBtn:active {
+  box-shadow: 0 2px #ff5ca8;
+  transform: translateY(2px);
 }
 </style>
 
 <div id="gameContainer">
-  <h1>Whack-a-Bug</h1>
+  <h1>🍭 Whack-a-Candy 🍬</h1>
   <div id="score">Score: 0</div>
   <div id="timer">Time: 30</div>
   <button id="startBtn">Start Game</button>
@@ -69,7 +108,6 @@ let gameInterval;
 let bugTimeout;
 let currentBug = null;
 
-// Create 9 squares
 for (let i = 0; i < 9; i++) {
   const square = document.createElement("div");
   square.classList.add("square");
@@ -112,7 +150,7 @@ function spawnBug() {
   const randomSquare = squares[Math.floor(Math.random() * squares.length)];
 
   randomSquare.classList.add("bug");
-  randomSquare.textContent = "🐞";
+  randomSquare.textContent = "🍬";
   currentBug = randomSquare;
 
   bugTimeout = setTimeout(spawnBug, 2000 + Math.random() * 1000);
@@ -131,7 +169,7 @@ function endGame() {
   clearInterval(gameInterval);
   removeBug();
   startBtn.disabled = false;
-  alert("Time's up! Your score: " + score);
+  alert("Time's up! Your candy score: " + score);
 }
 
 startBtn.addEventListener("click", startGame);
