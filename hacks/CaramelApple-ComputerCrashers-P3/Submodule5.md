@@ -1,8 +1,8 @@
 ---
-layout: base
-title: Caramel Apple Launch Party (Finale)
-authors: ComputerCrashers Team
-permalink: /candyland/party
+layout: post
+title: Carmal Apple Pie
+authors: Rishabh Jha
+permalink: /candyland/lunchparty
 ---
 
 <style>
