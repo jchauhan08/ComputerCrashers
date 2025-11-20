@@ -1,17 +1,17 @@
 ---
 layout: post
-title: Candyland hot chocolate tub
+title: Chilling in a Hot Chocolate tub with friends
 authors: Shay Mortensen
 permalink: /candyland/hot-chocolate
 ---
 <section id="dialogue-minigame" aria-live="polite">
     <style>
         #dialogue-minigame { max-width:640px; margin:1.5rem auto; font-family:system-ui,Segoe UI,Roboto,Helvetica,Arial,sans-serif; }
-        .card { border:1px solid #ddd; padding:1rem; border-radius:8px; background:#fff; box-shadow:0 6px 18px rgba(0,0,0,0.04); }
+        .card { border:1px solid #ddd; padding:1rem; border-radius:8px; background:#F7CBFF; box-shadow:0 6px 18px rgba(0,0,0,0.04); }
         .npc { font-weight:700; margin-bottom:.5rem; }
         .text { margin-bottom:1rem; }
         .choices { display:flex; gap:.5rem; margin-bottom:1rem; }
-        .choices button { flex:1; padding:.6rem .8rem; border-radius:6px; border:1px solid #bbb; background:#f7f7f8; cursor:pointer; transition:transform .08s ease; }
+        .choices button { flex:1; padding:.6rem .8rem; border-radius:6px; border:1px solid #bbbbbb8a; background:#C4F2FF; cursor:pointer; transition:transform .08s ease; }
         .choices button:hover { transform:translateY(-2px); }
         .choices button[disabled] { opacity:.6; cursor:default; transform:none; }
         .result { margin-top:.6rem; font-weight:600; }
@@ -23,7 +23,7 @@ permalink: /candyland/hot-chocolate
     </style>
 
     <div class="card" role="application" aria-label="Dialogue minigame">
-        <div class="npc">Counselor Cocoa</div>
+        <div class="npc">Joe Licorice</div>
         <div class="text" id="prompt">...</div>
 
         <div class="choices" id="options" role="list"></div>
@@ -47,11 +47,11 @@ permalink: /candyland/hot-chocolate
             // Values: good = 1, neutral = 0, bad = -1
             const interactions = [
                 {
-                    prompt: "Question 1: Choose an option.",
+                    prompt: "Hi Gingerbrella! Did you bring the marshmallows? I'm really looking forward to roasting them!",
                     choices: [
-                        { text: "Good option", value: 1, feedback: "Good option — positive outcome." },
-                        { text: "Bad option", value: -1, feedback: "Bad option — negative outcome." },
-                        { text: "Neutral option", value: 0, feedback: "Neutral option — no significant effect." }
+                        { text: "Yes I did! they're right here ", value: 1, feedback: "<gives marshmallow>" },
+                        { text: "Oh I forgot... I was in such a hurry when I left ", value: -1, feedback: "<gives nothing>" },
+                        { text: "I was only able to get half as many as we need ", value: 0, feedback: "<gives half> " }
                     ]
                 },
                 {
