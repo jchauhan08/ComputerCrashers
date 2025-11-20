@@ -5,6 +5,9 @@ LOG_FILE = /tmp/jekyll$(PORT).log
 SHELL = /bin/bash -c
 .SHELLFLAGS = -e
 
+# Python interpreter used for conversion scripts (override with `make PYTHON=/path/to/python`)
+PYTHON ?= python3
+
 NOTEBOOK_FILES := $(shell find _notebooks -name '*.ipynb')
 DESTINATION_DIRECTORY = _posts
 MARKDOWN_FILES := $(patsubst _notebooks/%.ipynb,$(DESTINATION_DIRECTORY)/%_IPYNB_2_.md,$(NOTEBOOK_FILES))
@@ -31,7 +34,7 @@ default: serve-current
 			echo "Server started in $$COUNTER seconds"; \
 			break; \
 		fi; \
-		if [ $$COUNTER -eq 120 ]; then \
+		if [ $$COUNTER -eq 300 ]; then \
 			echo "Server timed out after $$COUNTER seconds."; \
 			echo "Review errors from $(LOG_FILE)."; \
 			cat $(LOG_FILE); \
@@ -48,7 +51,7 @@ use-minima:
 	@cp _themes/minima/opencs.html _layouts/opencs.html
 	@cp _themes/minima/page.html _layouts/page.html
 	@cp _themes/minima/post.html _layouts/post.html
-	@python3 scripts/update_color_map.py minima || echo "⚠ Color map update failed, continuing..."
+	@$(PYTHON) scripts/update_color_map.py minima || echo "⚠ Color map update failed, continuing..."
 	@echo "✓ Minima theme activated"
 
 use-cayman:
@@ -58,7 +61,7 @@ use-cayman:
 	@cp _themes/cayman/opencs.html _layouts/opencs.html
 	@cp _themes/cayman/page.html _layouts/page.html
 	@cp _themes/cayman/post.html _layouts/post.html
-	@python3 scripts/update_color_map.py cayman || echo "⚠ Color map update failed, continuing..."
+	@$(PYTHON) scripts/update_color_map.py cayman || echo "⚠ Color map update failed, continuing..."
 	@echo "✓ Cayman theme activated"
 
 use-hydejack:
@@ -68,7 +71,7 @@ use-hydejack:
 	@cp _themes/hydejack/opencs.html _layouts/opencs.html
 	@cp _themes/hydejack/page.html _layouts/page.html
 	@cp _themes/hydejack/post.html _layouts/post.html
-	@python3 scripts/update_color_map.py hydejack || echo "⚠ Color map update failed, continuing..."
+	@$(PYTHON) scripts/update_color_map.py hydejack || echo "⚠ Color map update failed, continuing..."
 	@echo "✓ Hydejack theme activated"
 
 use-so-simple:
@@ -120,7 +123,7 @@ serve-current: stop convert
 			grep "Server address:" $(LOG_FILE); \
 			break; \
 		fi; \
-		if [ $$COUNTER -eq 120 ]; then \
+		if [ $$COUNTER -eq 300 ]; then \
 			echo "Server timed out after $$COUNTER seconds."; \
 			echo "Review errors from $(LOG_FILE)."; \
 			cat $(LOG_FILE); \
@@ -149,12 +152,12 @@ build: build-current
 convert: $(MARKDOWN_FILES) convert-docx
 $(DESTINATION_DIRECTORY)/%_IPYNB_2_.md: _notebooks/%.ipynb
 	@mkdir -p $(@D)
-	@python3 -c "from scripts.convert_notebooks import convert_notebooks; convert_notebooks()"
+	@$(PYTHON) -c "from scripts.convert_notebooks import convert_notebooks; convert_notebooks()"
 
 # DOCX conversion
 convert-docx:
 	@if [ -d "_docx" ] && [ "$(shell ls -A _docx 2>/dev/null)" ]; then \
-		python3 scripts/convert_docx.py; \
+		$(PYTHON) scripts/convert_docx.py; \
 	else \
 		echo "No DOCX files found in _docx directory"; \
 	fi
@@ -164,7 +167,7 @@ convert-docx-config:
 	@if [ -d "_docx" ] && [ "$(shell ls -A _docx 2>/dev/null)" ]; then \
 		if [ -n "$(CONFIG_FILE)" ]; then \
 			echo "🔧 Config file changed: $(CONFIG_FILE)"; \
-			python3 scripts/convert_docx.py --config-changed "$(CONFIG_FILE)"; \
+			$(PYTHON) scripts/convert_docx.py --config-changed "$(CONFIG_FILE)"; \
 		else \
 			python3 scripts/convert_docx.py; \
 		fi; \
@@ -185,7 +188,7 @@ clean-docx:
 # Color mapping
 update-colors:
 	@echo "Updating local color map..."
-	@python3 scripts/update_color_map.py
+	@$(PYTHON) scripts/update_color_map.py
 	@echo "Color map updated successfully"
 	@echo "Generated files:"
 	@echo "   - _sass/root-color-map.scss"
@@ -285,9 +288,9 @@ help:
 convert-check:
 	@echo "Running conversion diagnostics..."
 	@echo "Checking for notebook conversion warnings or errors..."
-	@python3 scripts/check_conversion_warnings.py
+	@$(PYTHON) scripts/check_conversion_warnings.py
 
 convert-fix:
 	@echo "Running conversion fixes..."
 	@echo "️Fixing notebooks with known warnings or errors..."
-	@python3 scripts/check_conversion_warnings.py --fix
+	@$(PYTHON) scripts/check_conversion_warnings.py --fix
