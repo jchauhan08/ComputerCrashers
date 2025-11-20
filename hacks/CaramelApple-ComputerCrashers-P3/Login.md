@@ -17,18 +17,20 @@ permalink: /candyland/login
   --light-gray: #E0E0E0;
 }
 
+
+
 /* Add Poppins font from Google Fonts */
 @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap');
 
 body {
   font-family: "Poppins", sans-serif;
-  background-color: var(--cream);
+  background-color: #B07950; /* Rich Caramel */
   padding: 20px;
   min-height: 100vh;
   display: flex;
   justify-content: center;
   align-items: center;
-  overflow: hidden; /* Hide scrollbars caused by floating candies */
+  overflow-x: hidden; /* Allows vertical scroll, prevents horizontal */
   position: relative; /* Needed for positioning the candy elements */
 }
 
@@ -43,38 +45,83 @@ body {
   animation: float 15s infinite ease-in-out;
 }
 
+/* --- S-Shape Candy Positioning --- */
+
+/* Left Side Candies (Lollipop, Pink Candy, Candy Cane, Gummy) */
+
+/* c1: Top-Left (Inner position) */
 .candy.c1 {
-  background-image: url('/images/lolli.png'); /* Swirly Lollipop */
-  width: 100px;
-  height: 100px;
-  top: 10%;
-  left: 5%;
+  background-image: url('/images/lolli.png');
+  top: 30%;
+  left: 15%; /* Closer to the center */
   animation-duration: 20s;
 }
 
+/* c2: Mid-Left (Outer position) */
 .candy.c2 {
-  background-image: url('/images/pink-candy.png'); /* Pink Candy */
-  top: 20%;
-  right: 10%;
-  animation-duration: 25s;
-  animation-delay: 2s;
+  background-image: url('/images/pink-candy.png');
+  width: 70px;
+  height: 70px;
+  top: 35%;
+  left: 5%; /* Further from the center */
+  animation-duration: 20s;
 }
 
+/* c3: Mid-Left (Inner position) */
 .candy.c3 {
-  background-image: url('/images/candy-cane.png'); /* Candy Cane */
+  background-image: url('/images/candy-cane.png');
   width: 60px;
   height: 60px;
-  bottom: 15%;
-  left: 15%;
-  animation-duration: 18s;
+  top: 50%;
+  left: 10%; /* Closer to the center */
+  animation-duration: 20s;
 }
 
+/* c4: Bottom-Left (Outer position) */
 .candy.c4 {
-  background-image: url('/images/gummy.png'); /* Green Gummy */
-  bottom: 10%;
-  right: 5%;
-  animation-duration: 22s;
-  animation-delay: 3s;
+  background-image: url('/images/gummy.png');
+  top: 60%;
+  left: 15%; /* Further from the center */
+  animation-duration: 20s;
+}
+
+
+/* Right Side Candies (Duplicates of the same four) */
+
+/* c5: Top-Right (Inner position) */
+.candy.c5 {
+  background-image: url('/images/pink-candy.png');
+  top: 30%;
+  right: 15%; /* Closer to the center */
+  animation-duration: 28s;
+}
+
+/* c6: Mid-Right (Outer position) */
+.candy.c6 {
+  background-image: url('/images/lolli.png');
+  width: 70px;
+  height: 70px;
+  top: 35%;
+  right: 5%; /* Further from the center */
+  animation-duration: 19s;
+}
+
+/* c7: Mid-Right (Inner position) */
+.candy.c7 {
+  background-image: url('/images/gummy.png');
+  width: 60px;
+  height: 60px;
+  top: 50%;
+  right: 10%; /* Closer to the center */
+  animation-duration: 23s;
+}
+
+/* c8: Bottom-Right (Outer position) */
+.candy.c8 {
+  background-image: url('/images/candy-cane.png');
+  top: 60%;
+  right: 15%; /* Further from the center */
+  animation-duration: 16s;
 }
 
 @keyframes float {
@@ -124,6 +171,9 @@ label {
   color: var(--caramel);
   font-weight: 600;
   margin-bottom: 5px;
+  /*margin-left: auto; /* Center the block */
+  /*margin-right: auto; /* Center the block */
+  width: 90%; /* Set width */
 }
 
 input[type="text"],
@@ -165,7 +215,7 @@ input:focus {
 }
 
 .primary { background: var(--mint-green); color: var(--dark-chocolate); }
-.secondary { background: var(--soft-pink); color: var(--dark-chocolate); }
+.secondary { background: var(--mint-green); color: var(--dark-chocolate); }
 .back-link { color: var(--caramel); cursor: pointer; display: inline-block; margin-top: 10px; font-weight: 600; }
 
 /* Character Selection Styling */
@@ -228,11 +278,15 @@ input:focus {
 #character-section, #signup-section { display: none; }
 </style>
 
-<!-- Floating Candy Elements -->
-<div class="candy c1"></div>
-<div class="candy c2"></div>
-<div class="candy c3"></div>
-<div class="candy c4"></div>
+<!-- Floating Candy Elements - S-Shape Formation -->
+<div class="candy c1"></div> <!-- Left 1 -->
+<div class="candy c2"></div> <!-- Left 2 -->
+<div class="candy c3"></div> <!-- Left 3 -->
+<div class="candy c4"></div> <!-- Left 4 -->
+<div class="candy c5"></div> <!-- Right 1 -->
+<div class="candy c6"></div> <!-- Right 2 -->
+<div class="candy c7"></div> <!-- Right 3 -->
+<div class="candy c8"></div> <!-- Right 4 -->
 
 <!-- Main Container -->
 <div class="ca-container">
@@ -246,7 +300,7 @@ input:focus {
     <label for="password">Password</label>
     <input id="password" type="password" placeholder="Enter your password">
     <button class="ca-button primary" onclick="attemptLogin()">Login</button>
-    <button class="ca-button secondary" onclick="showSignup()">Sign Up</button>
+    <button class="ca-button primary" onclick="showSignup()">Sign Up</button>
     <p id="error" style="color: red; font-weight: bold; height: 20px;"></p>
   </div>
 
