@@ -2,10 +2,9 @@
 layout: post
 title: Candyland Maze Adventure
 authors: Jaynee Chauhan
-permalink: /candyland/maze
+permalink: /candyland/workmaze
 ---
 
-<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
