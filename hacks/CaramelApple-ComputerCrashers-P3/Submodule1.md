@@ -5,7 +5,7 @@ authors: Anika Marathe
 permalink: /candyland/morningroutine
 ---
 
-<!DOCTYPE html>
+
 <html lang="en">
 <head>
     <meta charset="UTF-8">
@@ -34,7 +34,8 @@ permalink: /candyland/morningroutine
 
     body {
         font-family: var(--font-body);
-        background-color: var(--bg-color);
+        /*background-color: var(--bg-color);*/
+        background-color: #efb5d6ff; 
         color: var(--text-color);
         display: flex;
         justify-content: center;
@@ -112,6 +113,8 @@ permalink: /candyland/morningroutine
         margin-top: 20px;
     }
 
+    
+
     /* --- Item Card Styling --- */
     .item-card {
         background-color: var(--card-bg);
@@ -181,16 +184,21 @@ permalink: /candyland/morningroutine
         width: 100%;
         height: 100%;
         background-color: rgba(255, 249, 243, 0.9);
+        color: #3e2723 !important;
         border-radius: 20px;
         flex-direction: column;
         justify-content: center;
         align-items: center;
         z-index: 10;
     }
+
+    #game-over-modal p {
+        color: #3e2723 !important;
+    }
     
     #game-over-modal h2 {
         font-family: var(--font-title);
-        color: var(--title-color);
+        color: #3e2723 !important;
         font-size: 2.5rem;
     }
     
@@ -263,10 +271,10 @@ document.addEventListener('DOMContentLoaded', () => {
     // Replace the paths below with the actual paths to your image files.
     // For example: "images/toothbrush.png"
     const imagePaths = {
-        "Candy Cane Toothbrush": "/images/toothbrush.png",
-        "Marshmallow Soap": "/images/soap.png",
+        "Candy Cane Toothbrush": "/images/tb2.png",
+        "Marshmallow Soap": "/images/soap2.png",
         "Peppermint Comb": "/images/comb.png",
-        "Caramel Coffee": "/images/caramel.png",
+        "Caramel Coffee": "/images/coffee.png",
         "Breakfast Bar": "/images/bar.png",
         "Gummy Vitamin Bottle": "/images/gummy1.png",
         "Bubblegum Face Wash": "/images/facewash.png"
