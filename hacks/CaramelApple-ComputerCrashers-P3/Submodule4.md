@@ -49,33 +49,33 @@ permalink: /candyland/hot-chocolate
                 {
                     prompt: "Hi Gingerbrella! Did you bring the marshmallows? I'm really looking forward to roasting them!",
                     choices: [
-                        { text: "Yes I did! they're right here ", value: 1, feedback: "<gives marshmallow>" },
-                        { text: "Oh I forgot... I was in such a hurry when I left ", value: -1, feedback: "<gives nothing>" },
-                        { text: "I was only able to get half as many as we need ", value: 0, feedback: "<gives half> " }
+                        { text: "Yes I did! they're right here ", value: 1, feedback: "<Joe Licorice liked that>" },
+                        { text: "Oh I forgot... I was in such a hurry when I left ", value: -1, feedback: "<Joe Licorice disliked that>" },
+                        { text: "I was only able to get half as many as we need ", value: 0, feedback: "<Joe Licorice was unaffected by that>" }
                     ]
                 },
                 {
-                    prompt: "Question 2: Choose an option.",
+                    prompt: "So, How are you doing today?",
                     choices: [
-                        { text: "Good option", value: 1, feedback: "Good option — positive outcome." },
-                        { text: "Bad option", value: -1, feedback: "Bad option — negative outcome." },
-                        { text: "Neutral option", value: 0, feedback: "Neutral option — no significant effect." }
+                        { text: "I'm Doing Good", value: 1, feedback: "<Joe Licorice liked that>" },
+                        { text: "I'm Doing bad :(", value: -1, feedback: "<Joe Licorice disliked that>" },
+                        { text: "i'm Okay", value: 0, feedback: "<Joe Licorice was unaffected by that>" }
                     ]
                 },
                 {
-                    prompt: "Question 3: Choose an option.",
+                    prompt: "Was the trip over here okay or did you run into the candy alligators again?",
                     choices: [
-                        { text: "Good option", value: 1, feedback: "Good option — positive outcome." },
-                        { text: "Bad option", value: -1, feedback: "Bad option — negative outcome." },
-                        { text: "Neutral option", value: 0, feedback: "Neutral option — no significant effect." }
+                        { text: "It was great! I didn't see any candygators", value: 1, feedback: "<Joe Licorice liked that>" },
+                        { text: "I ran into a candygator and it almost ran me into the swamp!", value: -1, feedback: "<Joe Licorice disliked that>" },
+                        { text: "Candygators? they're back?", value: 0, feedback: "<Joe Licorice was unaffected by that>" }
                     ]
                 },
                 {
-                    prompt: "Question 4: Choose an option.",
+                    prompt: "Are you going to the Caramel Apple launch party later?",
                     choices: [
-                        { text: "Good option", value: 1, feedback: "Good option — positive outcome." },
-                        { text: "Bad option", value: -1, feedback: "Bad option — negative outcome." },
-                        { text: "Neutral option", value: 0, feedback: "Neutral option — no significant effect." }
+                        { text: "Yes! I can't wait", value: 1, feedback: "<Joe Licorice liked that>" },
+                        { text: "No. I don't wan to", value: -1, feedback: "<Joe Licorice disliked that>" },
+                        { text: "I might. It depends", value: 0, feedback: "<Joe Licorice was unaffected by that>" }
                     ]
                 }
             ];
