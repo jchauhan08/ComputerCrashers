@@ -333,13 +333,13 @@ input:focus {
       <!-- Girl Gingerbread -->
       <div class="character-box" id="girl" onclick="selectCharacter('girl')">
         <!-- REPLACE THIS with your actual image URL -->
-        <img src="/images/gingerbread-girl.png" alt="Gingerbread Girl">
+        <img src="/images/ginger-girl.png" alt="Gingerbread Girl">
         <span>Ginger-Girl</span>
       </div>
       <!-- Boy Gingerbread -->
       <div class="character-box" id="boy" onclick="selectCharacter('boy')">
         <!-- REPLACE THIS with your actual image URL -->
-        <img src="/images/gingerbread.png" alt="Gingerbread Boy">
+        <img src="/images/gb2.png" alt="Gingerbread Boy">
         <span>Ginger-Boy</span>
       </div>
     </div>
