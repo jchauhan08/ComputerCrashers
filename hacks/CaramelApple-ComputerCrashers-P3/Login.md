@@ -69,7 +69,7 @@ body {
 
 /* c3: Mid-Left (Inner position) */
 .candy.c3 {
-  background-image: url('/images/candy-cane.png');
+  background-image: url('/images/peppermint.png');
   width: 60px;
   height: 60px;
   top: 50%;
@@ -79,7 +79,7 @@ body {
 
 /* c4: Bottom-Left (Outer position) */
 .candy.c4 {
-  background-image: url('/images/gummy.png');
+  background-image: url('/images/bear.png');
   top: 60%;
   left: 15%; /* Further from the center */
   animation-duration: 20s;
@@ -108,7 +108,7 @@ body {
 
 /* c7: Mid-Right (Inner position) */
 .candy.c7 {
-  background-image: url('/images/gummy.png');
+  background-image: url('/images/bear.png');
   width: 60px;
   height: 60px;
   top: 50%;
@@ -118,7 +118,7 @@ body {
 
 /* c8: Bottom-Right (Outer position) */
 .candy.c8 {
-  background-image: url('/images/candy-cane.png');
+  background-image: url('/images/peppermint.png');
   top: 60%;
   right: 15%; /* Further from the center */
   animation-duration: 16s;
