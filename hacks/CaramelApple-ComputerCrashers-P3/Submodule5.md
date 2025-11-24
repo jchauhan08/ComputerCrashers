@@ -1,8 +1,11 @@
 ---
-layout: post
-title: Carmal Apple Pie
+layout: base
+title: Caramel Apple Launch Party (Finale)
 authors: Rishabh Jha
-permalink: /candyland/lunchparty
+description: "Celebrate completing the Caramel Apple Quest with an interactive party"
+permalink: /candyland/party
+categories: [Quest, Finale]
+tags: [caramel, party, quest, finale]
 ---
 
 <style>
@@ -34,7 +37,6 @@ permalink: /candyland/lunchparty
 .garland .flag {
   position: absolute;
   width: 0; height: 0;
-  border-left: 18px solid transparent;
   border-right: 18px solid transparent;
   border-top: 30px solid #f58fb7;
   transform-origin: top center;
@@ -42,7 +44,6 @@ permalink: /candyland/lunchparty
 }
 .garland .flag:nth-child(2){ left: 120px; border-top-color:#ffc94a; animation-delay:.4s }
 .garland .flag:nth-child(3){ left: 240px; border-top-color:#9b59b6; animation-delay:.8s }
-.garland .flag:nth-child(4){ left: 360px; border-top-color:#6dd3ff; animation-delay:1.2s }
 .garland .flag:nth-child(5){ left: 480px; border-top-color:#7ed957; animation-delay:1.6s }
 .garland .flag:nth-child(6){ left: 600px; border-top-color:#ff7f50; animation-delay:2.0s }
 .garland .flag:nth-child(7){ left: 720px; border-top-color:#f58fb7; animation-delay:2.4s }
@@ -122,46 +123,46 @@ permalink: /candyland/lunchparty
 </style>
 
 <div class="party-wrap">
-  <h1>Caramel Apple Launch Party 🎉</h1>
+  <h1 aria-label="Caramel Apple Launch Party">Caramel Apple Launch Party 🎉</h1>
   <p>Final stop! Meet the characters, tap a few party objects, and celebrate your completed quest.</p>
 
   <div class="party-controls">
-    <button id="musicToggle" class="btn">🔊 Music: Off</button>
+    <button id="musicToggle" class="btn">🔇 Music: Off</button>
     <button id="resetBtn" class="btn alt">↺ Reset</button>
   </div>
 
-  <div class="party-room" id="partyRoom">
+  <div class="party-room" id="partyRoom" role="region" aria-label="Party room interactive area">
     <div class="garland">
       <div class="flag"></div><div class="flag"></div><div class="flag"></div><div class="flag"></div>
       <div class="flag"></div><div class="flag"></div><div class="flag"></div><div class="flag"></div><div class="flag"></div>
     </div>
 
     <!-- Characters -->
-    <div id="char-ginger" class="party-entity" data-type="character" data-id="ginger">
+    <div id="char-ginger" class="party-entity" data-type="character" data-id="ginger" tabindex="0" aria-label="Gingerbread buddy character">
       <img src="{{site.baseurl}}/images/gingerbread.png" alt="Gingerbread Buddy" />
       <div class="bubble">Welcome to the party! 🍎</div>
     </div>
-    <div id="char-girl" class="party-entity" data-type="character" data-id="ginger-girl">
+    <div id="char-girl" class="party-entity" data-type="character" data-id="ginger-girl" tabindex="0" aria-label="Gingerbread friend character">
       <img src="{{site.baseurl}}/images/gingerbread-girl.png" alt="Gingerbread Friend" />
       <div class="bubble">You did it — great job! ✨</div>
     </div>
-    <div id="char-gummy" class="party-entity" data-type="character" data-id="gummy">
+    <div id="char-gummy" class="party-entity" data-type="character" data-id="gummy" tabindex="0" aria-label="Gummy character">
       <img src="{{site.baseurl}}/images/gummy.png" alt="Gummy Pal" />
       <div class="bubble">Grab a treat and dance! 🕺</div>
     </div>
 
     <!-- Objects -->
-    <div id="obj-lolli" class="party-entity" data-type="object" data-id="lollipop">
+    <div id="obj-lolli" class="party-entity" data-type="object" data-id="lollipop" tabindex="0" aria-label="Lollipop object">
       <img src="{{site.baseurl}}/images/lolli.png" alt="Lollipop" />
       <div class="bubble">Sweet spin! 🍭</div>
     </div>
-    <div id="obj-cane" class="party-entity" data-type="object" data-id="candycane">
+    <div id="obj-cane" class="party-entity" data-type="object" data-id="candycane" tabindex="0" aria-label="Candy cane object">
       <img src="{{site.baseurl}}/images/candy-cane.png" alt="Candy Cane" />
       <div class="bubble">Boing! 🍬</div>
     </div>
 
     <!-- Completion Overlay -->
-    <div class="overlay" id="completeOverlay" aria-hidden="true">
+    <div class="overlay" id="completeOverlay" aria-hidden="true" role="dialog" aria-label="Quest completion overlay">
       <div class="overlay-card">
         <h2>Quest Completed 🎯</h2>
         <p>Thanks for playing Caramel Apple Quest!</p>
@@ -173,7 +174,7 @@ permalink: /candyland/lunchparty
     </div>
   </div>
 
-  <audio id="bgm" loop preload="none">
+  <audio id="bgm" loop preload="none" aria-label="Background party music">
     <source src="{{site.baseurl}}/media/party.mp3" type="audio/mpeg" />
   </audio>
 </div>
@@ -212,28 +213,19 @@ permalink: /candyland/lunchparty
       overlay.classList.add('show');
       overlay.setAttribute('aria-hidden', 'false');
       confettiBurst();
-      // optional: notify Flask backend for session tracking
-      try {
-        fetch('/party', { method: 'POST', headers: { 'Content-Type':'application/json' }, body: JSON.stringify({ complete: true }) });
-      } catch (e) { /* ignore if backend not present */ }
+      // Removed POST fetch to avoid 404/network errors on static site builds.
     }
   }
 
-  // click handling
-  room.addEventListener('click', (e)=>{
-    const entity = e.target.closest('.party-entity');
-    if (!entity) return;
+  function handleInteraction(entity){
     const type = entity.dataset.type;
     const id = entity.dataset.id;
-    const bubble = entity.querySelector('.bubble');
-
     if (type === 'character') {
       entity.classList.add('show');
       showBubble(entity);
       seenCharacters.add(id);
       confettiBurst();
     } else {
-      // objects animate
       if (id === 'lollipop') entity.classList.add('animate-spin');
       if (id === 'candycane') entity.classList.add('animate-bounce');
       showBubble(entity);
@@ -241,6 +233,21 @@ permalink: /candyland/lunchparty
       setTimeout(()=>{ entity.classList.remove('animate-spin','animate-bounce'); }, 1300);
     }
     checkCompletion();
+  }
+
+  // click handling
+  room.addEventListener('click', (e)=>{
+    const entity = e.target.closest('.party-entity');
+    if (!entity) return;
+    handleInteraction(entity);
+  });
+
+  // keyboard accessibility
+  room.addEventListener('keydown', (e)=>{
+    if ((e.key === 'Enter' || e.key === ' ') && document.activeElement.classList.contains('party-entity')) {
+      e.preventDefault();
+      handleInteraction(document.activeElement);
+    }
   });
 
   // overlay controls
@@ -264,34 +271,7 @@ permalink: /candyland/lunchparty
     document.querySelectorAll('.party-entity').forEach(el=> el.classList.remove('show','animate-spin','animate-bounce'));
     seenCharacters.clear(); usedObjects.clear();
     overlay.classList.remove('show');
+    overlay.setAttribute('aria-hidden','true');
   });
 })();
 </script>
-
-### Optional Flask Route `/party`
-
-If you have a Flask backend, you can track completion with a tiny route. Register this blueprint with your app and it will mark the session when the user completes the party.
-
-```python
-from flask import Blueprint, request, session, jsonify
-
-party_bp = Blueprint("party", __name__)
-
-@party_bp.route("/party", methods=["GET", "POST"])
-def party():
-    if request.method == "POST":
-        # Called by the page when all interactions are done
-        payload = request.get_json(silent=True) or {}
-        if payload.get("complete"):
-            session["party_complete"] = True
-        return jsonify(ok=True, party_complete=session.get("party_complete", False))
-    # For GET, you could serve a template if preferred
-    return jsonify(ok=True, party_complete=session.get("party_complete", False))
-
-# In your app factory or main:
-# app.register_blueprint(party_bp)
-```
-
-Notes:
-- Music toggle expects an optional file at `media/party.mp3`.
-- This page is self-contained; no external assets are required beyond included images.

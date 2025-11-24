@@ -2,11 +2,16 @@ HOST ?= localhost
 PORT ?= 4500
 LOG_FILE = /tmp/jekyll$(PORT).log
 
-SHELL = /bin/bash -c
-.SHELLFLAGS = -e
+SHELL = /usr/bin/env bash
+.SHELLFLAGS = -e -o pipefail -c
 
-# Python interpreter used for conversion scripts (override with `make PYTHON=/path/to/python`)
-PYTHON ?= python3
+# Python interpreter used for conversion scripts.
+# Auto-detect local virtual environment if present; override with `make PYTHON=/path/to/python`.
+PYTHON ?= $(shell if [ -x "$(CURDIR)/../venv/bin/python" ]; then echo "$(CURDIR)/../venv/bin/python"; elif [ -x "$(CURDIR)/venv/bin/python" ]; then echo "$(CURDIR)/venv/bin/python"; else command -v python3; fi)
+
+define _echo_py
+@echo "Using Python interpreter: $(PYTHON)"
+endef
 
 NOTEBOOK_FILES := $(shell find _notebooks -name '*.ipynb')
 DESTINATION_DIRECTORY = _posts
@@ -89,6 +94,16 @@ use-yat:
 	@cp _themes/yat/page.html _layouts/page.html
 	@cp _themes/yat/post.html _layouts/post.html
 
+use-tactile:
+	@echo "Switching to Tactile theme..."
+	@cp _themes/tactile/_config.yml _config.yml
+	@cp _themes/tactile/Gemfile Gemfile
+	@cp _themes/tactile/opencs.html _layouts/opencs.html
+	@cp _themes/tactile/page.html _layouts/page.html
+	@cp _themes/tactile/post.html _layouts/post.html
+	@$(PYTHON) scripts/update_color_map.py tactile || echo "⚠ Color map update failed, continuing..."
+	@echo "✓ Tactile theme activated"
+
 serve-hydejack: use-hydejack clean
 	@make serve-current
 
@@ -112,11 +127,12 @@ serve-yat: use-yat clean
 
 # General serve target (uses whatever is in _config.yml/Gemfile)
 serve-current: stop convert
+	$(_echo_py)
 	@echo "Starting server with current config/Gemfile..."
-	@@nohup bundle install && bundle exec jekyll serve -H $(HOST) -P $(PORT) > $(LOG_FILE) 2>&1 & \
+	@nohup bundle install && bundle exec jekyll serve -H $(HOST) -P $(PORT) > $(LOG_FILE) 2>&1 & \
 		PID=$$!; \
 		echo "Server PID: $$PID"
-	@@until [ -f $(LOG_FILE) ]; do sleep 1; done
+	@until [ -f $(LOG_FILE) ]; do sleep 1; done
 	@for ((COUNTER = 0; ; COUNTER++)); do \
 		if grep -q "Server address:" $(LOG_FILE); then \
 			echo "Server started in $$COUNTER seconds"; \
@@ -140,6 +156,7 @@ build-so-simple: use-so-simple build-current
 build-yat: use-yat build-current
 
 build-current: clean
+	$(_echo_py)
 	@bundle install
 	@bundle exec jekyll clean
 	@bundle exec jekyll build
@@ -150,12 +167,13 @@ build: build-current
 
 # Notebook and DOCX conversion
 convert: $(MARKDOWN_FILES) convert-docx
+	$(_echo_py)
 $(DESTINATION_DIRECTORY)/%_IPYNB_2_.md: _notebooks/%.ipynb
 	@mkdir -p $(@D)
 	@$(PYTHON) -c "from scripts.convert_notebooks import convert_notebooks; convert_notebooks()"
 
 # DOCX conversion
-convert-docx:
+convert-docx: check-deps
 	@if [ -d "_docx" ] && [ "$(shell ls -A _docx 2>/dev/null)" ]; then \
 		$(PYTHON) scripts/convert_docx.py; \
 	else \
@@ -186,7 +204,7 @@ clean-docx:
 	@echo "DOCX cleanup complete"
 
 # Color mapping
-update-colors:
+update-colors: check-deps
 	@echo "Updating local color map..."
 	@$(PYTHON) scripts/update_color_map.py
 	@echo "Color map updated successfully"
@@ -220,9 +238,9 @@ clean: stop
 
 stop:
 	@echo "Stopping server..."
-	@@lsof -ti :$(PORT) | xargs kill >/dev/null 2>&1 || true
+	@lsof -ti :$(PORT) | xargs kill >/dev/null 2>&1 || true
 	@echo "Stopping logging process..."
-	@@ps aux | awk -v log_file=$(LOG_FILE) '$$0 ~ "tail -f " log_file { print $$2 }' | xargs kill >/dev/null 2>&1 || true
+	@ps aux | awk -v log_file=$(LOG_FILE) '$$0 ~ "tail -f " log_file { print $$2 }' | xargs kill >/dev/null 2>&1 || true
 	@rm -f $(LOG_FILE)
 
 reload:
@@ -233,31 +251,22 @@ refresh:
 	@make stop
 	@make clean
 	@make
-
-docx-only: convert-docx
-	@echo "DOCX conversion complete - ready for preview"
-
-preview-docx: clean-docx convert-docx
-	@echo "Converting DOCX and starting preview server..."
-	@make serve-current
-
-help:
-	@echo "Available Makefile commands:"
-	@echo ""
 	@echo "Theme Serve Commands:"
-	@echo "  make serve-minima   - Switch to Minima and serve"
-	@echo "  make serve-text     - Switch to TeXt and serve"
-	@echo "  make serve-cayman   - Switch to Cayman and serve"
-	@echo "  make serve-so-simple   - Switch to So Simple and serve"
-	@echo "  make serve-yat      - Switch to Yat and serve"
-	@echo "  make serve-hydejack - Switch to HydeJack and serve"
+	@echo "  make serve-minima     - Switch to Minima and serve"
+	@echo "  make serve-text       - Switch to TeXt and serve"
+	@echo "  make serve-cayman     - Switch to Cayman and serve"
+	@echo "  make serve-so-simple  - Switch to So Simple and serve"
+	@echo "  make serve-yat        - Switch to Yat and serve"
+	@echo "  make serve-hydejack   - Switch to HydeJack and serve"
+	@echo "  make serve-tactile    - Switch to Tactile and serve"
 	@echo ""
 	@echo "Theme Build Commands:"
-	@echo "  make build-minima   - Switch to Minima and build"
-	@echo "  make build-text     - Switch to TeXt and build"
-	@echo "  make build-cayman   - Switch to Cayman and build"
-	@echo "  make build-so-simple   - Switch to So Simple and build"
-	@echo "  make build-yat      - Switch to Yat and build"
+	@echo "  make build-minima     - Switch to Minima and build"
+	@echo "  make build-text       - Switch to TeXt and build"
+	@echo "  make build-cayman     - Switch to Cayman and build"
+	@echo "  make build-so-simple  - Switch to So Simple and build"
+	@echo "  make build-yat        - Switch to Yat and build"
+	@echo "  make build-tactile    - Switch to Tactile and build"
 	@echo ""
 	@echo "Color Mapping Commands:"
 	@echo "  make update-colors         - Update local color map"
@@ -285,12 +294,20 @@ help:
 	@echo "  make convert-fix    - Fix identified notebook conversion issues"
 
 # Notebook diagnostic and fix targets
-convert-check:
+convert-check: check-deps
 	@echo "Running conversion diagnostics..."
 	@echo "Checking for notebook conversion warnings or errors..."
 	@$(PYTHON) scripts/check_conversion_warnings.py
 
-convert-fix:
+convert-fix: check-deps
+
+# Dependency check (lightweight) to provide early feedback before scripts run
+check-deps:
+	@$(PYTHON) scripts/check_python_deps.py
+
+install-deps:
+	@echo "Installing required Python packages into interpreter: $(PYTHON)"; \
+	$(PYTHON) -m pip install --upgrade mammoth pillow python-docx markdownify >/dev/null && echo "✓ Dependencies installed" || echo "⚠ Failed to install some packages";
 	@echo "Running conversion fixes..."
 	@echo "️Fixing notebooks with known warnings or errors..."
 	@$(PYTHON) scripts/check_conversion_warnings.py --fix
