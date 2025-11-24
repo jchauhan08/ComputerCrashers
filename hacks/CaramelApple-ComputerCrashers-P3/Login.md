@@ -314,7 +314,7 @@ input:focus {
       <input id="new-email" type="email" placeholder="Enter your email">
       <label for="new-password">Password</label>
       <input id="new-password" type="password" placeholder="Create a strong password">
-      <button class="ca-button primary">Create Account</button>
+      <button class="ca-button primary" onclick="attemptSignup()">Create Account</button>
       <a class="back-link" onclick="showLogin()">← Back to Login</a>
   </div>
 
@@ -344,7 +344,6 @@ input:focus {
 </div>
 
 
-<!-- JavaScript Logic -->
 <script>
 const loginSection = document.getElementById("login-section");
 const signupSection = document.getElementById("signup-section");
@@ -360,19 +359,74 @@ function showSignup() {
   signupSection.style.display = "block";
 }
 
-function attemptLogin() {
+// --- NEW LOGIN LOGIC ---
+async function attemptLogin() {
   const user = document.getElementById("username").value.trim();
   const pass = document.getElementById("password").value.trim();
   const error = document.getElementById("error");
+
   if (user === "" || pass === "") {
     error.textContent = "Please fill out both fields.";
     return;
   }
-  error.textContent = "";
-  loginSection.style.display = "none";
-  characterSection.style.display = "block";
+
+  try {
+    const response = await fetch('http://127.0.0.1:8086/api/login', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ username: user, password: pass })
+    });
+
+    const data = await response.json();
+
+    if (response.ok) {
+      error.textContent = "";
+      console.log("Welcome " + data.username);
+      loginSection.style.display = "none";
+      characterSection.style.display = "block";
+    } else {
+      error.textContent = data.error;
+    }
+  } catch (e) {
+    error.textContent = "Server error. Check console.";
+    console.error(e);
+  }
 }
 
+// --- NEW SIGNUP LOGIC ---
+// Note: You need to add onclick="attemptSignup()" to your "Create Account" button in HTML
+async function attemptSignup() {
+    const user = document.getElementById("new-username").value.trim();
+    const email = document.getElementById("new-email").value.trim();
+    const pass = document.getElementById("new-password").value.trim();
+    
+    // Quick alert for validation (you can make this prettier later)
+    if (!user || !email || !pass) {
+        alert("Please fill in all fields");
+        return;
+    }
+
+    try {
+        const response = await fetch('http://127.0.0.1:8086/api/signup', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ username: user, email: email, password: pass })
+        });
+        
+        const data = await response.json();
+
+        if (response.ok) {
+            alert("Account created successfully! Switching to Login.");
+            showLogin();
+        } else {
+            alert("Error: " + data.error);
+        }
+    } catch (e) {
+        alert("Server connection failed.");
+    }
+}
+
+// ... Keep your Character Select logic here ...
 function selectCharacter(type) {
   document.getElementById("girl").classList.remove("selected");
   document.getElementById("boy").classList.remove("selected");

@@ -43,3 +43,16 @@ _posts/**/*_DOCX_.md
 # Temporary DOCX files
 _docx/~$*
 *.tmp
+
+# Ignore Database files
+*.db
+*.sqlite
+instance/
+hacks/instance/
+
+# Ignore Python compiled files
+__pycache__/
+*.pyc
+
+# Ignore Environment variables (if you have them)
+.env

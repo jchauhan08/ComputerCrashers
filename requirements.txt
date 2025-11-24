@@ -12,3 +12,8 @@ mammoth
 pillow
 python-docx
 markdownify
+flask 
+flask-sqlalchemy 
+flask-login 
+flask-bcrypt
+flask-cors
