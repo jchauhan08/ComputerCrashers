@@ -258,7 +258,7 @@ permalink: /candyland/morningroutine
     <div id="game-over-modal">
         <h2>Quest Complete!</h2>
         <p>You did an amazing job!</p>
-        <button id="next-module-btn">Proceed to Module 2</button>
+        <button id="next-module-btn" onclick="window.location.href='/candyland/workmaze'">Proceed to Module 2</button>
     </div>
 </div>
 
