@@ -273,10 +273,10 @@ document.addEventListener('DOMContentLoaded', () => {
     const imagePaths = {
         "Candy Cane Toothbrush": "/images/tb2.png",
         "Marshmallow Soap": "/images/soap2.png",
-        "Peppermint Comb": "/images/comb.png",
+        "Peppermint Comb": "/images/comb2.png",
         "Caramel Coffee": "/images/coffee.png",
         "Breakfast Bar": "/images/bar.png",
-        "Gummy Vitamin Bottle": "/images/gummy1.png",
+        "Gummy Vitamin Bottle": "/images/gummi2.png",
         "Bubblegum Face Wash": "/images/facewash.png"
     };
     // -------------------------------------------------------------------
