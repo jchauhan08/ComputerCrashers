@@ -339,6 +339,10 @@ input:focus {
     <div id="name-selector">
       <p style="color: var(--light-gray);">Please select a character first</p>
     </div>
+    <!-- NEW LOGOUT BUTTON -->
+    <button class="ca-button secondary" onclick="logout()" style="margin-top: 20px; background-color: #f479cfff; color: white;">
+    Logout
+</button>
   </div>
 
 </div>
@@ -359,11 +363,14 @@ function showSignup() {
   signupSection.style.display = "block";
 }
 
-// --- NEW LOGIN LOGIC ---
+// --- UPDATED LOGIN LOGIC ---
 async function attemptLogin() {
   const user = document.getElementById("username").value.trim();
   const pass = document.getElementById("password").value.trim();
   const error = document.getElementById("error");
+
+  // Reset error message
+  error.textContent = "";
 
   if (user === "" || pass === "") {
     error.textContent = "Please fill out both fields.";
@@ -371,6 +378,7 @@ async function attemptLogin() {
   }
 
   try {
+    // Make sure this port matches your Python terminal (likely 8086)
     const response = await fetch('http://127.0.0.1:8086/api/login', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -380,17 +388,27 @@ async function attemptLogin() {
     const data = await response.json();
 
     if (response.ok) {
-      error.textContent = "";
-      console.log("Welcome " + data.username);
+      // SUCCESS: Switch screens
+      console.log("Login Successful");
       loginSection.style.display = "none";
       characterSection.style.display = "block";
     } else {
-      error.textContent = data.error;
+      // FAILURE: Display the error message
+      // This catches the 401 error from the backend
+      error.style.color = "red";
+      error.textContent = "Check your username or password"; 
     }
   } catch (e) {
-    error.textContent = "Server error. Check console.";
     console.error(e);
+    error.textContent = "Server connection failed. Is Python running?";
   }
+}
+
+// --- NEW LOGOUT LOGIC ---
+function logout() {
+    // 1. (Optional) Clear any stored data if you had any
+    // 2. Redirect to the login page (this refreshes the page and resets state)
+    window.location.href = '/candyland/login';
 }
 
 // --- NEW SIGNUP LOGIC ---
