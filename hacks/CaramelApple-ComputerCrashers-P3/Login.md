@@ -291,6 +291,14 @@ input:focus {
 <!-- Main Container -->
 <div class="ca-container">
 
+<!-- NEW BUTTON: Hidden by default -->
+  <button id="start-routine-btn" 
+          onclick="goToRoutine()" 
+          class="ca-button primary" 
+          style="display: none; position: absolute; top: 20px; right: 20px; width: auto; padding: 8px 15px; font-size: 0.8rem; z-index: 100;">
+      Start Morning Routine ➜
+  </button>
+
   <!-- LOGIN SCREEN -->
   <div id="login-section">
     <h1 class="ca-title">Welcome to Caramel Apple!</h1>
@@ -444,14 +452,25 @@ async function attemptSignup() {
     }
 }
 
-// ... Keep your Character Select logic here ...
+// --- REDIRECT FUNCTION ---
+function goToRoutine() {
+    window.location.href = '/candyland/morningroutine';
+}
+
+// --- UPDATED CHARACTER SELECTION ---
 function selectCharacter(type) {
+  // 1. Reset visual selection
   document.getElementById("girl").classList.remove("selected");
   document.getElementById("boy").classList.remove("selected");
   document.getElementById(type).classList.add("selected");
 
+  // 2. HIDE the start button (because name selection is reset)
+  document.getElementById("start-routine-btn").style.display = "none";
+
+  // 3. Generate Names
   const nameSelector = document.getElementById("name-selector");
   nameSelector.innerHTML = "";
+  
   let names = (type === "girl")
     ? ["Ginger Snaps", "Molly Molasses", "Candy Cane"]
     : ["Graham Cracker", "Chip Cinnamon", "Captain Cookie"];
@@ -460,13 +479,18 @@ function selectCharacter(type) {
     const nameTag = document.createElement("div");
     nameTag.className = "name-tag";
     nameTag.textContent = name;
+    // Pass the nameTag element to the selectName function
     nameTag.onclick = () => selectName(nameTag);
     nameSelector.appendChild(nameTag);
   });
 }
 
+// --- UPDATED NAME SELECTION ---
 function selectName(selectedTag) {
+    // 1. handle visual selection
     document.querySelectorAll('.name-tag').forEach(tag => tag.classList.remove('selected'));
     selectedTag.classList.add('selected');
+
+    // 2. SHOW the start button (Now both Character and Name are picked!)
+    document.getElementById("start-routine-btn").style.display = "block";
 }
-</script>
