@@ -5,37 +5,35 @@ authors: Anika Marathe
 permalink: /candyland/morningroutine
 ---
 
-
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <!-- Importing Google Fonts for a professional look -->
+    <!-- Importing Google Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;500;600&family=Nunito:wght@400;600;700&display=swap" rel="stylesheet">
     <title>Morning Routine Game</title>
 
 <style>
-    /* --- General Styling & Setup --- */
+    /* --- General Styling --- */
     :root {
-        --bg-color: #FEF6F0;
+        --bg-color: #efb5d6ff; 
         --card-bg: #FFF9F3;
+        --card-back-bg: #FFC3A0; 
+        --card-pattern: #D4746A;
         --text-color: #6B4F4F;
         --title-color: #D4746A;
         --border-color: #F7E6DC;
         --correct-color: #5cb85c;
         --incorrect-color: #d9534f;
-        --sprite-bg: #E4F1FF;
-        --sprite-border: #A3D5FF;
         --font-title: 'Fredoka', sans-serif;
         --font-body: 'Nunito', sans-serif;
     }
 
     body {
         font-family: var(--font-body);
-        /*background-color: var(--bg-color);*/
-        background-color: #efb5d6ff; 
+        background-color: var(--bg-color);
         color: var(--text-color);
         display: flex;
         justify-content: center;
@@ -46,7 +44,6 @@ permalink: /candyland/morningroutine
         box-sizing: border-box;
     }
 
-    /* --- Game Container --- */
     .game-container {
         width: 100%;
         max-width: 800px;
@@ -58,182 +55,142 @@ permalink: /candyland/morningroutine
         position: relative;
     }
 
-    /* --- Header & Instructions --- */
-    .game-header {
-        margin-bottom: 30px;
-    }
-
+    .game-header { margin-bottom: 30px; }
     .game-title {
         font-family: var(--font-title);
         color: var(--title-color);
         font-size: 2.5rem;
         font-weight: 500;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        gap: 15px;
     }
+    #instruction-text { font-size: 1.2rem; margin-top: 10px; font-weight: bold;}
+
+    /* --- FLIP CARD CSS --- */
     
-    .game-title .icon {
-        background: linear-gradient(135deg, #ffafbd, #ffc3a0);
-        width: 40px;
-        height: 40px;
-        border-radius: 50%;
-        display: inline-block;
-        /* Placeholder for a magnifying glass icon */
-    }
-
-    #instruction-text {
-        font-size: 1.2rem;
-        margin-top: 10px;
-        color: var(--text-color);
-    }
-    
-    #sprite-box {
-        position: absolute;
-        top: 40px;
-        right: 40px;
-        width: 100px;
-        height: 100px;
-        background-color: var(--sprite-bg);
-        border: 2px dashed var(--sprite-border);
-        border-radius: 10px;
-        display: flex;
-        justify-content: center;
-        align-items: center;
-        font-weight: 600;
-    }
-
-
-    /* --- Items Grid (CSS Grid) --- */
     #items-grid {
         display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
-        gap: 25px;
+        grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+        gap: 20px;
         margin-top: 20px;
     }
 
-    
-
-    /* --- Item Card Styling --- */
     .item-card {
-        background-color: var(--card-bg);
-        border: 2px solid var(--border-color);
-        border-radius: 15px;
-        padding: 20px;
+        background-color: transparent;
+        min-height: 180px;
+        perspective: 1000px; 
         cursor: pointer;
-        transition: transform 0.2s ease, box-shadow 0.2s ease;
-        text-align: center;
-        font-weight: 600;
-        min-height: 180px; 
-        display: flex;
-        justify-content: center;
-        align-items: center;
     }
 
-    .item-card:hover {
-        transform: translateY(-5px);
-        box-shadow: 0 8px 20px rgba(0, 0, 0, 0.08);
-    }
-    
-    .item-card.disabled {
-        pointer-events: none;
-        opacity: 0.7;
-    }
-
-    .item-card .img-container {
+    .card-inner {
+        position: relative;
         width: 100%;
-        height: 120px;
+        height: 100%;
+        text-align: center;
+        transition: transform 0.6s;
+        transform-style: preserve-3d;
+        border-radius: 15px;
+        box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+    }
+
+    .item-card.flipped .card-inner {
+        transform: rotateY(180deg);
+    }
+
+    .card-front, .card-back {
+        position: absolute;
+        width: 100%;
+        height: 100%;
+        -webkit-backface-visibility: hidden;
+        backface-visibility: hidden;
+        border-radius: 15px;
+        border: 3px solid var(--border-color);
         display: flex;
         justify-content: center;
         align-items: center;
     }
-    
-    .item-card .img-container img {
-        max-width: 100%;
-        max-height: 100%;
+
+    .card-front {
+        background-color: var(--card-back-bg);
+        color: white;
+        font-size: 3rem;
+        font-family: var(--font-title);
+        background-image: repeating-linear-gradient(
+            45deg,
+            var(--card-back-bg),
+            var(--card-back-bg) 10px,
+            #ffafbd 10px,
+            #ffafbd 20px
+        );
+    }
+
+    .card-back {
+        background-color: var(--card-bg);
+        transform: rotateY(180deg); 
+    }
+
+    .card-back img {
+        max-width: 80%;
+        max-height: 80%;
         object-fit: contain;
     }
 
-    /* --- Visual Feedback Classes --- */
-    .item-card.correct {
+    .card-inner.correct .card-back {
         border-color: var(--correct-color);
-        box-shadow: 0 0 15px rgba(92, 184, 92, 0.5);
-        animation: pulse 0.5s ease;
+        background-color: #e8f5e9;
+        box-shadow: 0 0 15px var(--correct-color);
     }
 
-    .item-card.incorrect {
+    .card-inner.incorrect .card-back {
         border-color: var(--incorrect-color);
-        box-shadow: 0 0 15px rgba(217, 83, 79, 0.5);
+        background-color: #fce4ec;
+        box-shadow: 0 0 15px var(--incorrect-color);
         animation: shake 0.4s ease;
     }
 
-    /* --- Score Display --- */
-    #score-display {
-        margin-top: 30px;
-        font-size: 1.1rem;
-        font-weight: 600;
-    }
-    
+    #score-display { margin-top: 30px; font-size: 1.1rem; font-weight: 600; color: black;  /* <--- Added this line */}
+
+
+
     /* --- Game Over Modal --- */
     #game-over-modal {
-        display: none; /* Initially hidden */
-        position: absolute;
-        top: 0;
-        left: 0;
-        width: 100%;
-        height: 100%;
-        background-color: rgba(255, 249, 243, 0.9);
-        color: #3e2723 !important;
+        display: none;
+        position: absolute; top: 0; left: 0;
+        width: 100%; height: 100%;
+        background-color: rgba(255, 249, 243, 0.95);
         border-radius: 20px;
         flex-direction: column;
         justify-content: center;
         align-items: center;
-        z-index: 10;
+        z-index: 20;
+    }
+    
+    #game-over-modal h2 { 
+        font-family: var(--font-title); 
+        color: #3e2723; 
+        font-size: 2.5rem; 
+    }
+    
+    /* Removed specific color styling for 'p' so it uses default text color */
+    #game-over-modal p { 
+        font-size: 1.5rem; 
+        font-weight: bold; 
+        margin-bottom: 20px; 
     }
 
-    #game-over-modal p {
-        color: #3e2723 !important;
-    }
-    
-    #game-over-modal h2 {
-        font-family: var(--font-title);
-        color: #3e2723 !important;
-        font-size: 2.5rem;
-    }
-    
     #next-module-btn {
         background: linear-gradient(135deg, #ffafbd, #ffc3a0);
-        border: none;
-        border-radius: 10px;
-        color: white;
-        padding: 15px 30px;
-        font-size: 1rem;
-        font-weight: 700;
-        cursor: pointer;
-        transition: transform 0.2s ease, box-shadow 0.2s ease;
+        border: none; border-radius: 10px;
+        color: white; padding: 15px 30px;
+        font-size: 1rem; font-weight: 700;
+        cursor: pointer; transition: transform 0.2s;
     }
-    
-    #next-module-btn:hover {
-        transform: scale(1.05);
-        box-shadow: 0 5px 15px rgba(212, 116, 106, 0.4);
-    }
-    
+    #next-module-btn:hover { transform: scale(1.05); }
 
-    /* --- Animations --- */
     @keyframes shake {
-        0%, 100% { transform: translateX(0); }
-        25% { transform: translateX(-5px); }
-        50% { transform: translateX(5px); }
-        75% { transform: translateX(-5px); }
+        0%, 100% { transform: rotateY(180deg) translateX(0); } 
+        25% { transform: rotateY(180deg) translateX(-5px); }
+        50% { transform: rotateY(180deg) translateX(5px); }
+        75% { transform: rotateY(180deg) translateX(-5px); }
     }
-    
-    @keyframes pulse {
-        0% { transform: scale(1); }
-        50% { transform: scale(1.05); }
-        100% { transform: scale(1); }
-    }
-
 </style>
 </head>
 <body>
@@ -241,16 +198,13 @@ permalink: /candyland/morningroutine
 <div class="game-container">
     <div class="game-header">
         <h1 class="game-title">
-            <span class="icon"></span>
             <span id="game-round-title">Morning Routine — Round 1/5</span>
         </h1>
         <p id="instruction-text">Find the Candy Cane Toothbrush!</p>
     </div>
     
-    <div id="sprite-box">Sprite</div>
-
     <div id="items-grid">
-        <!-- Item cards will be generated by JavaScript -->
+        <!-- Cards Generated Here -->
     </div>
 
     <div id="score-display">Score: 0</div>
@@ -265,11 +219,7 @@ permalink: /candyland/morningroutine
 <script>
 document.addEventListener('DOMContentLoaded', () => {
 
-    // -------------------------------------------------------------------
-    // --- STEP 1: EDIT YOUR IMAGE PATHS HERE ---
-    // -------------------------------------------------------------------
-    // Replace the paths below with the actual paths to your image files.
-    // For example: "images/toothbrush.png"
+    // --- CONFIGURATION ---
     const imagePaths = {
         "Candy Cane Toothbrush": "/images/tb2.png",
         "Marshmallow Soap": "/images/soap2.png",
@@ -279,84 +229,51 @@ document.addEventListener('DOMContentLoaded', () => {
         "Gummy Vitamin Bottle": "/images/gummi2.png",
         "Bubblegum Face Wash": "/images/facewash.png"
     };
-    // -------------------------------------------------------------------
 
-    // --- GAME DATA (No need to edit below this line) ---
     const gameData = [
         {
             round: 1,
             instruction: "Find the Candy Cane Toothbrush!",
             correctItem: "Candy Cane Toothbrush",
-            items: [
-                { name: "Candy Cane Toothbrush", img: imagePaths["Candy Cane Toothbrush"] },
-                { name: "Marshmallow Soap", img: imagePaths["Marshmallow Soap"] },
-                { name: "Peppermint Comb", img: imagePaths["Peppermint Comb"] },
-                { name: "Caramel Coffee", img: imagePaths["Caramel Coffee"] },
-                { name: "Breakfast Bar", img: imagePaths["Breakfast Bar"] }
-            ]
+            items: ["Candy Cane Toothbrush", "Marshmallow Soap", "Peppermint Comb", "Caramel Coffee", "Breakfast Bar"]
         },
         {
             round: 2,
             instruction: "Find the Marshmallow Soap!",
             correctItem: "Marshmallow Soap",
-            items: [
-                { name: "Bubblegum Face Wash", img: imagePaths["Bubblegum Face Wash"] },
-                { name: "Marshmallow Soap", img: imagePaths["Marshmallow Soap"] },
-                { name: "Peppermint Comb", img: imagePaths["Peppermint Comb"] },
-                { name: "Candy Cane Toothbrush", img: imagePaths["Candy Cane Toothbrush"] },
-                { name: "Gummy Vitamin Bottle", img: imagePaths["Gummy Vitamin Bottle"] }
-            ]
+            items: ["Bubblegum Face Wash", "Marshmallow Soap", "Peppermint Comb", "Candy Cane Toothbrush", "Gummy Vitamin Bottle"]
         },
         {
             round: 3,
             instruction: "Find the Peppermint Comb!",
             correctItem: "Peppermint Comb",
-            items: [
-                { name: "Peppermint Comb", img: imagePaths["Peppermint Comb"] },
-                { name: "Caramel Coffee", img: imagePaths["Caramel Coffee"] },
-                { name: "Breakfast Bar", img: imagePaths["Breakfast Bar"] },
-                { name: "Gummy Vitamin Bottle", img: imagePaths["Gummy Vitamin Bottle"] },
-                { name: "Marshmallow Soap", img: imagePaths["Marshmallow Soap"] }
-            ]
+            items: ["Peppermint Comb", "Caramel Coffee", "Breakfast Bar", "Gummy Vitamin Bottle", "Marshmallow Soap"]
         },
         {
             round: 4,
             instruction: "Find the Caramel Coffee!",
             correctItem: "Caramel Coffee",
-            items: [
-                { name: "Candy Cane Toothbrush", img: imagePaths["Candy Cane Toothbrush"] },
-                { name: "Breakfast Bar", img: imagePaths["Breakfast Bar"] },
-                { name: "Caramel Coffee", img: imagePaths["Caramel Coffee"] },
-                { name: "Bubblegum Face Wash", img: imagePaths["Bubblegum Face Wash"] },
-                { name: "Peppermint Comb", img: imagePaths["Peppermint Comb"] }
-            ]
+            items: ["Candy Cane Toothbrush", "Breakfast Bar", "Caramel Coffee", "Bubblegum Face Wash", "Peppermint Comb"]
         },
         {
             round: 5,
             instruction: "Find the Breakfast Bar!",
             correctItem: "Breakfast Bar",
-            items: [
-                { name: "Gummy Vitamin Bottle", img: imagePaths["Gummy Vitamin Bottle"] },
-                { name: "Marshmallow Soap", img: imagePaths["Marshmallow Soap"] },
-                { name: "Breakfast Bar", img: imagePaths["Breakfast Bar"] },
-                { name: "Caramel Coffee", img: imagePaths["Caramel Coffee"] },
-                { name: "Candy Cane Toothbrush", img: imagePaths["Candy Cane Toothbrush"] }
-            ]
+            items: ["Gummy Vitamin Bottle", "Marshmallow Soap", "Breakfast Bar", "Caramel Coffee", "Candy Cane Toothbrush"]
         }
     ];
 
     // --- STATE VARIABLES ---
     let currentRound = 0;
     let score = 0;
+    let isProcessing = false; 
+    let attempts = 0; // Tracks how many times they flipped in a round
 
-    // --- DOM ELEMENTS ---
     const grid = document.getElementById('items-grid');
     const instructionText = document.getElementById('instruction-text');
     const roundTitle = document.getElementById('game-round-title');
     const scoreDisplay = document.getElementById('score-display');
     const gameOverModal = document.getElementById('game-over-modal');
-
-    // --- GAME LOGIC FUNCTIONS ---
 
     function shuffle(array) {
         for (let i = array.length - 1; i > 0; i--) {
@@ -368,11 +285,13 @@ document.addEventListener('DOMContentLoaded', () => {
 
     function renderRound() {
         if (currentRound >= gameData.length) {
-            endGame();
+            gameOverModal.style.display = 'flex';
             return;
         }
 
         const roundData = gameData[currentRound];
+        isProcessing = false;
+        attempts = 0; // RESET attempts at start of every round
         
         instructionText.textContent = roundData.instruction;
         roundTitle.textContent = `Morning Routine — Round ${roundData.round}/5`;
@@ -381,16 +300,17 @@ document.addEventListener('DOMContentLoaded', () => {
         grid.innerHTML = '';
         const shuffledItems = shuffle([...roundData.items]);
         
-        shuffledItems.forEach(item => {
+        shuffledItems.forEach(itemName => {
             const card = document.createElement('div');
             card.className = 'item-card';
-            card.dataset.name = item.name;
+            card.dataset.name = itemName;
 
-            // *** THIS IS THE UPDATED PART ***
-            // It now uses a real <img> tag with the path you provide.
             card.innerHTML = `
-                <div class="img-container">
-                    <img src="${item.img}" alt="${item.name}">
+                <div class="card-inner">
+                    <div class="card-front">?</div>
+                    <div class="card-back">
+                        <img src="${imagePaths[itemName]}" alt="${itemName}">
+                    </div>
                 </div>
             `;
             
@@ -401,36 +321,50 @@ document.addEventListener('DOMContentLoaded', () => {
 
     function handleCardClick(event) {
         const clickedCard = event.currentTarget;
+        
+        if (isProcessing || clickedCard.classList.contains('flipped')) return;
+
+        // 1. Flip the card
+        clickedCard.classList.add('flipped');
+        
+        // 2. Increment attempts
+        attempts++;
+
         const selectedItem = clickedCard.dataset.name;
         const correctItem = gameData[currentRound].correctItem;
-        
-        document.querySelectorAll('.item-card').forEach(card => card.classList.add('disabled'));
+        const innerCard = clickedCard.querySelector('.card-inner');
 
+        // 3. Check Logic
         if (selectedItem === correctItem) {
-            score++;
-            clickedCard.classList.add('correct');
-            scoreDisplay.textContent = `Score: ${score}`;
+            // --- CORRECT ---
             
+            // LOGIC: Point only if attempts <= 2
+            if (attempts <= 2) {
+                score++;
+            }
+            
+            scoreDisplay.textContent = `Score: ${score}`;
+            innerCard.classList.add('correct');
+            isProcessing = true; 
+
             setTimeout(() => {
                 currentRound++;
                 renderRound();
-            }, 1500);
-            
+            }, 1500); 
+
         } else {
-            clickedCard.classList.add('incorrect');
-            
+            // --- INCORRECT ---
+            isProcessing = true; 
+            innerCard.classList.add('incorrect'); 
+
             setTimeout(() => {
-                clickedCard.classList.remove('incorrect');
-                document.querySelectorAll('.item-card').forEach(card => card.classList.remove('disabled'));
-            }, 1000);
+                clickedCard.classList.remove('flipped');
+                innerCard.classList.remove('incorrect');
+                isProcessing = false; 
+            }, 1200); 
         }
     }
-    
-    function endGame() {
-        gameOverModal.style.display = 'flex';
-    }
 
-    // --- INITIALIZE GAME ---
     renderRound();
 });
 </script>
