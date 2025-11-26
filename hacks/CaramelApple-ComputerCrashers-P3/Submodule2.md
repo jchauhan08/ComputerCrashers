@@ -5,6 +5,7 @@ authors: Jaynee Chauhan
 permalink: /candyland/workmaze
 ---
 
+
 <html lang="en">
 <head>
     <meta charset="UTF-8">
@@ -97,6 +98,45 @@ permalink: /candyland/workmaze
             color: #FF69B4;
             font-size: 1.2em;
             margin-bottom: 20px;
+        }
+
+        .stats-bar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+            gap: 10px;
+        }
+
+        .timer-display {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 12px 20px;
+            border-radius: 15px;
+            font-size: 1.3em;
+            font-weight: bold;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+            min-width: 120px;
+            text-align: center;
+        }
+
+        .timer-display.warning {
+            background: linear-gradient(135deg, #f5576c 0%, #f093fb 100%);
+            animation: pulse-timer 0.5s infinite;
+        }
+
+        @keyframes pulse-timer {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+        }
+
+        .wall-counter {
+            background: rgba(255, 107, 107, 0.2);
+            padding: 8px 15px;
+            border-radius: 10px;
+            font-size: 1em;
+            color: #c23616;
+            font-weight: 600;
         }
 
         .task-list {
@@ -207,7 +247,7 @@ permalink: /candyland/workmaze
             opacity: 0.6;
         }
 
-        .victory-screen {
+        .victory-screen, .game-over-screen {
             display: none;
             position: fixed;
             top: 0;
@@ -220,27 +260,51 @@ permalink: /candyland/workmaze
             align-items: center;
         }
 
-        .victory-content {
+        .victory-content, .game-over-content {
             background: white;
             padding: 50px;
             border-radius: 30px;
             text-align: center;
-            border: 8px solid #FFD700;
             box-shadow: 0 0 50px rgba(255, 215, 0, 0.8);
             max-width: 500px;
         }
 
-        .victory-content h2 {
+        .victory-content {
+            border: 8px solid #FFD700;
+        }
+
+        .game-over-content {
+            border: 8px solid #FF6B6B;
+        }
+
+        .victory-content h2, .game-over-content h2 {
             font-size: 3em;
-            color: #FF1493;
             margin-bottom: 20px;
             text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.2);
         }
 
-        .victory-content p {
+        .victory-content h2 {
+            color: #FF1493;
+        }
+
+        .game-over-content h2 {
+            color: #c23616;
+        }
+
+        .victory-content p, .game-over-content p {
             font-size: 1.5em;
             color: #333;
             margin-bottom: 30px;
+        }
+
+        .badge-earned {
+            display: inline-block;
+            background: linear-gradient(135deg, #ffeaa7 0%, #fdcb6e 100%);
+            padding: 15px 25px;
+            border-radius: 15px;
+            margin: 10px;
+            font-size: 1.2em;
+            box-shadow: 0 4px 15px rgba(253, 203, 110, 0.4);
         }
 
         .confetti {
@@ -285,6 +349,11 @@ permalink: /candyland/workmaze
         <h1>🍭 Getting to Work! 🍬</h1>
         <p class="subtitle">Navigate through Licorice Lane</p>
 
+        <div class="stats-bar">
+            <div class="timer-display" id="timerDisplay">⏱️ 30s</div>
+            <div class="wall-counter" id="wallCounter">🚧 Wall Hits: 0</div>
+        </div>
+
         <div class="task-list">
             <div class="task-item" id="task1">
                 <span class="task-icon">⛽</span>
@@ -321,9 +390,22 @@ permalink: /candyland/workmaze
             <h2>🎉 Congratulations! 🎉</h2>
             <div class="confetti">🎊 🎈 🎁 ✨ 🍭 🍬 🎊</div>
             <p>You made it to Caramel Apple HQ on time!</p>
-            <p style="font-size: 1.2em;">You're ready for a great day at work! 💼</p>
+            <p style="font-size: 1.2em;">Time: <span id="finalTime"></span></p>
+            <div id="badgesEarned"></div>
             <button class="next-module" onclick="nextModule()">Continue to Work Module →</button>
             <button onclick="resetGame()">🔄 Play Again</button>
+        </div>
+    </div>
+
+    <!-- Game Over Screen -->
+    <div class="game-over-screen" id="gameOverScreen">
+        <div class="game-over-content">
+            <h2>⏰ Time's Up! ⏰</h2>
+            <div class="confetti">😅 🕐 ⏱️ 🍭</div>
+            <p>You ran out of time getting to work!</p>
+            <p style="font-size: 1.2em;">Don't worry, try again!</p>
+            <div id="gameOverBadges"></div>
+            <button onclick="resetGame()">🔄 Try Again</button>
         </div>
     </div>
 
@@ -350,10 +432,14 @@ permalink: /candyland/workmaze
         };
 
         let playerPos = { x: 0, y: 0 };
-        let currentCheckpoint = 2; // Start looking for gas station
+        let currentCheckpoint = 2;
         let collectedCheckpoints = new Set();
         let visitedCells = new Set();
         let gameComplete = false;
+        let timeRemaining = 30;
+        let timerInterval = null;
+        let wallHits = 0;
+        let startTime = null;
 
         function createMaze() {
             const mazeEl = document.getElementById('maze');
@@ -382,8 +468,35 @@ permalink: /candyland/workmaze
                     mazeEl.appendChild(cell);
                 }
             }
-            visitedCells.add('0-0'); // Mark starting position as visited
+            visitedCells.add('0-0');
             updatePlayerPosition();
+            startTimer();
+        }
+
+        function startTimer() {
+            if (timerInterval) clearInterval(timerInterval);
+            startTime = Date.now();
+            
+            timerInterval = setInterval(() => {
+                timeRemaining--;
+                updateTimerDisplay();
+                
+                if (timeRemaining <= 10) {
+                    document.getElementById('timerDisplay').classList.add('warning');
+                }
+                
+                if (timeRemaining <= 0) {
+                    gameOver();
+                }
+            }, 1000);
+        }
+
+        function updateTimerDisplay() {
+            document.getElementById('timerDisplay').textContent = `⏱️ ${timeRemaining}s`;
+        }
+
+        function updateWallCounter() {
+            document.getElementById('wallCounter').textContent = `🚧 Wall Hits: ${wallHits}`;
         }
 
         function updatePlayerPosition() {
@@ -397,16 +510,25 @@ permalink: /candyland/workmaze
         }
 
         function movePlayer(dx, dy) {
-            if (gameComplete) return; // Prevent movement after game is complete
+            if (gameComplete) return;
             
             const newX = playerPos.x + dx;
             const newY = playerPos.y + dy;
             
             // Check boundaries
-            if (newX < 0 || newX >= 10 || newY < 0 || newY >= 10) return;
+            if (newX < 0 || newX >= 10 || newY < 0 || newY >= 10) {
+                wallHits++;
+                updateWallCounter();
+                return;
+            }
             
             // Check if it's a wall
-            if (mazeLayout[newY][newX] === 0) return;
+            if (mazeLayout[newY][newX] === 0) {
+                wallHits++;
+                updateWallCounter();
+                showMessage("🍫 Oops! That's a chocolate wall!");
+                return;
+            }
             
             // Check if already visited
             const cellKey = `${newX}-${newY}`;
@@ -448,6 +570,7 @@ permalink: /candyland/workmaze
                     } else {
                         // Game complete!
                         gameComplete = true;
+                        clearInterval(timerInterval);
                         setTimeout(() => {
                             showVictoryScreen();
                         }, 1000);
@@ -459,13 +582,52 @@ permalink: /candyland/workmaze
         }
 
         function showVictoryScreen() {
+            const finalTimeEl = document.getElementById('finalTime');
+            const timeTaken = 30 - timeRemaining;
+            finalTimeEl.textContent = `${timeTaken} seconds`;
+            
+            // Determine badges
+            const badgesDiv = document.getElementById('badgesEarned');
+            badgesDiv.innerHTML = '';
+            
+            // Path Finder badge (always earned on completion)
+            badgesDiv.innerHTML += '<div class="badge-earned">🧭 Path Finder</div>';
+            
+            // Speed badges
+            if (timeTaken <= 15) {
+                badgesDiv.innerHTML += '<div class="badge-earned">⚡ Speed Runner</div>';
+            }
+            
+            // Directionally Challenged badge
+            if (wallHits >= 5) {
+                badgesDiv.innerHTML += '<div class="badge-earned">🌀 Directionally Challenged</div>';
+            }
+            
+            // Perfect Navigation badge
+            if (wallHits === 0) {
+                badgesDiv.innerHTML += '<div class="badge-earned">🎯 Perfect Navigator</div>';
+            }
+            
             document.getElementById('victoryScreen').style.display = 'flex';
+        }
+
+        function gameOver() {
+            gameComplete = true;
+            clearInterval(timerInterval);
+            
+            // Award Directionally Challenged badge if earned
+            const gameOverBadgesDiv = document.getElementById('gameOverBadges');
+            gameOverBadgesDiv.innerHTML = '';
+            
+            if (wallHits >= 5) {
+                gameOverBadgesDiv.innerHTML = '<div class="badge-earned">🌀 Directionally Challenged</div><p style="font-size: 1em;">At least you earned a badge! 😅</p>';
+            }
+            
+            document.getElementById('gameOverScreen').style.display = 'flex';
         }
 
         function nextModule() {
             alert('Moving to the Work Module! 🎉');
-            // Add your navigation logic here to go to the next module
-            // For example: window.location.href = 'work-module.html';
         }
 
         function showMessage(text) {
@@ -484,14 +646,21 @@ permalink: /candyland/workmaze
             collectedCheckpoints.clear();
             visitedCells.clear();
             gameComplete = false;
+            timeRemaining = 30;
+            wallHits = 0;
             
-            // Hide victory screen
+            if (timerInterval) clearInterval(timerInterval);
+            
             document.getElementById('victoryScreen').style.display = 'none';
+            document.getElementById('gameOverScreen').style.display = 'none';
+            document.getElementById('timerDisplay').classList.remove('warning');
             
             document.querySelectorAll('.task-item').forEach(task => {
                 task.classList.remove('completed');
             });
             
+            updateTimerDisplay();
+            updateWallCounter();
             createMaze();
             showMessage('Start your journey! Head to the gas station first ⛽');
         }
