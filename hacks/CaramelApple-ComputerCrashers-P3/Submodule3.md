@@ -433,8 +433,7 @@ permalink: /candyland/whack-a-bug
         }
 
         function nextModule() {
-            alert('Moving to the next module! 🎉');
-            // Add your navigation logic here
+            window.location.href = '/candyland/hotchocolate'; // Navigate to Submodule 4
         }
 
         startBtn.addEventListener("click", startGame);

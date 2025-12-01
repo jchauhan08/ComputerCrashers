@@ -589,8 +589,7 @@ permalink: /candyland/hotchocolate
             }
 
             window.nextModule = function() {
-                alert('Moving to the Party! 🎉');
-                // Navigation logic here
+                window.location.href = '/candyland/ending'; // Navigate to Submodule 5
             };
 
             retryBtn.addEventListener('click', () => {
