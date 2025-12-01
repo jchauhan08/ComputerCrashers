@@ -146,9 +146,7 @@ permalink: /candyland/morningroutine
         animation: shake 0.4s ease;
     }
 
-    #score-display { margin-top: 30px; font-size: 1.1rem; font-weight: 600; color: black;  /* <--- Added this line */}
-
-
+    #score-display { margin-top: 30px; font-size: 1.1rem; font-weight: 600; color: black; }
 
     /* --- Game Over Modal --- */
     #game-over-modal {
@@ -169,7 +167,6 @@ permalink: /candyland/morningroutine
         font-size: 2.5rem; 
     }
     
-    /* Removed specific color styling for 'p' so it uses default text color */
     #game-over-modal p { 
         font-size: 1.5rem; 
         font-weight: bold; 
@@ -203,9 +200,8 @@ permalink: /candyland/morningroutine
         <p id="instruction-text">Find the Candy Cane Toothbrush!</p>
     </div>
     
-    <div id="items-grid">
-        <!-- Cards Generated Here -->
-    </div>
+    <!-- The grid is now generated ONCE at the start -->
+    <div id="items-grid"></div>
 
     <div id="score-display">Score: 0</div>
     
@@ -230,36 +226,33 @@ document.addEventListener('DOMContentLoaded', () => {
         "Bubblegum Face Wash": "/images/facewash.png"
     };
 
+    // We only need the correct item per round now.
+    // The visual grid will stay consistent.
     const gameData = [
         {
             round: 1,
             instruction: "Find the Candy Cane Toothbrush!",
-            correctItem: "Candy Cane Toothbrush",
-            items: ["Candy Cane Toothbrush", "Marshmallow Soap", "Peppermint Comb", "Caramel Coffee", "Breakfast Bar"]
+            correctItem: "Candy Cane Toothbrush"
         },
         {
             round: 2,
             instruction: "Find the Marshmallow Soap!",
-            correctItem: "Marshmallow Soap",
-            items: ["Bubblegum Face Wash", "Marshmallow Soap", "Peppermint Comb", "Candy Cane Toothbrush", "Gummy Vitamin Bottle"]
+            correctItem: "Marshmallow Soap"
         },
         {
             round: 3,
             instruction: "Find the Peppermint Comb!",
-            correctItem: "Peppermint Comb",
-            items: ["Peppermint Comb", "Caramel Coffee", "Breakfast Bar", "Gummy Vitamin Bottle", "Marshmallow Soap"]
+            correctItem: "Peppermint Comb"
         },
         {
             round: 4,
             instruction: "Find the Caramel Coffee!",
-            correctItem: "Caramel Coffee",
-            items: ["Candy Cane Toothbrush", "Breakfast Bar", "Caramel Coffee", "Bubblegum Face Wash", "Peppermint Comb"]
+            correctItem: "Caramel Coffee"
         },
         {
             round: 5,
             instruction: "Find the Breakfast Bar!",
-            correctItem: "Breakfast Bar",
-            items: ["Gummy Vitamin Bottle", "Marshmallow Soap", "Breakfast Bar", "Caramel Coffee", "Candy Cane Toothbrush"]
+            correctItem: "Breakfast Bar"
         }
     ];
 
@@ -267,7 +260,7 @@ document.addEventListener('DOMContentLoaded', () => {
     let currentRound = 0;
     let score = 0;
     let isProcessing = false; 
-    let attempts = 0; // Tracks how many times they flipped in a round
+    let attempts = 0; 
 
     const grid = document.getElementById('items-grid');
     const instructionText = document.getElementById('instruction-text');
@@ -283,24 +276,17 @@ document.addEventListener('DOMContentLoaded', () => {
         return array;
     }
 
-    function renderRound() {
-        if (currentRound >= gameData.length) {
-            gameOverModal.style.display = 'flex';
-            return;
-        }
-
-        const roundData = gameData[currentRound];
-        isProcessing = false;
-        attempts = 0; // RESET attempts at start of every round
+    // --- INITIALIZATION ---
+    function initGame() {
+        // 1. Get all available items from the image dictionary
+        const allItems = Object.keys(imagePaths);
         
-        instructionText.textContent = roundData.instruction;
-        roundTitle.textContent = `Morning Routine — Round ${roundData.round}/5`;
-        scoreDisplay.textContent = `Score: ${score}`;
+        // 2. Shuffle them ONCE. They will stay in this order forever.
+        const boardLayout = shuffle([...allItems]);
         
+        // 3. Build the Grid ONCE.
         grid.innerHTML = '';
-        const shuffledItems = shuffle([...roundData.items]);
-        
-        shuffledItems.forEach(itemName => {
+        boardLayout.forEach(itemName => {
             const card = document.createElement('div');
             card.className = 'item-card';
             card.dataset.name = itemName;
@@ -317,11 +303,39 @@ document.addEventListener('DOMContentLoaded', () => {
             card.addEventListener('click', handleCardClick);
             grid.appendChild(card);
         });
+
+        // 4. Start the first round
+        startRound();
+    }
+
+    function startRound() {
+        if (currentRound >= gameData.length) {
+            gameOverModal.style.display = 'flex';
+            return;
+        }
+
+        const roundData = gameData[currentRound];
+        isProcessing = false;
+        attempts = 0; 
+        
+        // Update Text
+        instructionText.textContent = roundData.instruction;
+        roundTitle.textContent = `Morning Routine — Round ${roundData.round}/5`;
+        scoreDisplay.textContent = `Score: ${score}`;
+        
+        // RESET VISUALS: Flip all cards back to "?" and remove colors
+        const allCards = document.querySelectorAll('.item-card');
+        allCards.forEach(card => {
+            card.classList.remove('flipped');
+            const inner = card.querySelector('.card-inner');
+            inner.classList.remove('correct', 'incorrect');
+        });
     }
 
     function handleCardClick(event) {
         const clickedCard = event.currentTarget;
         
+        // Prevent clicking if busy, or if card is already revealed
         if (isProcessing || clickedCard.classList.contains('flipped')) return;
 
         // 1. Flip the card
@@ -338,7 +352,7 @@ document.addEventListener('DOMContentLoaded', () => {
         if (selectedItem === correctItem) {
             // --- CORRECT ---
             
-            // LOGIC: Point only if attempts <= 2
+            // Point only if attempts <= 2 (allowing for memory errors)
             if (attempts <= 2) {
                 score++;
             }
@@ -347,9 +361,10 @@ document.addEventListener('DOMContentLoaded', () => {
             innerCard.classList.add('correct');
             isProcessing = true; 
 
+            // Wait a moment, then start next round (which hides cards again)
             setTimeout(() => {
                 currentRound++;
-                renderRound();
+                startRound();
             }, 1500); 
 
         } else {
@@ -365,7 +380,8 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
-    renderRound();
+    // Begin
+    initGame();
 });
 </script>
 
