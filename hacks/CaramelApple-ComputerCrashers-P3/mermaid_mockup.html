@@ -1,0 +1,93 @@
+---
+layout: base
+title: Mermaid Mockup
+permalink: /mermaid-mockup/
+---
+
+<html lang="en">
+  <head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;500;600&family=Nunito:wght@400;600;700&display=swap" rel="stylesheet">
+  <title>Candyland Game Structure</title>
+  
+  
+  <style>
+  :root {
+  --bg-color: #efb5d6ff;
+  --card-bg: #FFF9F3;
+  --text-color: #6B4F4F;
+  --title-color: #D4746A;
+  }
+  
+  
+  body {
+  font-family: 'Nunito', sans-serif;
+  background-color: var(--bg-color);
+  color: var(--text-color);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 100vh;
+  margin: 0;
+  padding: 20px;
+  box-sizing: border-box;
+  }
+  
+  
+  .diagram-container {
+  width: 100%;
+  max-width: 800px;
+  background-color: var(--card-bg);
+  border-radius: 20px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.07);
+  padding: 40px;
+  text-align: center;
+  }
+  
+  
+  h1 { font-family: 'Fredoka', sans-serif; color: var(--title-color); }
+  p { font-size: 1rem; margin-bottom: 30px; }
+  
+  
+  pre.mermaid { text-align: center; }
+  </style>
+  </head>
+  <body>
+  
+  
+  <div class="diagram-container">
+  <h1>Candyland Game File Structure</h1>
+  <p>Each file is represented in a box, showing how it connects to the others.</p>
+  
+  
+  <pre class="mermaid">flowchart TD
+  style Login fill:#ffb3d9,stroke:#d4746a,stroke-width:2px
+  style Welcome fill:#ffd6f0,stroke:#d4746a,stroke-width:2px
+  style Candy fill:#d6b3ff,stroke:#d4746a,stroke-width:2px
+  style SM1 fill:#ffd6f0,stroke:#d4746a,stroke-width:2px
+  style SM2 fill:#ffd6f0,stroke:#d4746a,stroke-width:2px
+  style SM3 fill:#ffd6f0,stroke:#d4746a,stroke-width:2px
+  style SM4 fill:#ffd6f0,stroke:#d4746a,stroke-width:2px
+  style SM5 fill:#ffd6f0,stroke:#d4746a,stroke-width:2px
+  
+  
+  Login[Login.md] --> Welcome[Welcome.md]
+  Welcome --> Candy[Candylandmap.html]
+  Candy --> SM1[Submodule1.md]
+  Candy --> SM2[Submodule2.md]
+  Candy --> SM3[Submodule3.md]
+  Candy --> SM4[Submodule4.md]
+  Candy --> SM5[Submodule5.md]
+  </pre>
+  
+  
+  <script src="https://cdn.jsdelivr.net/npm/mermaid/dist/mermaid.min.js"></script>
+  <script>mermaid.initialize({ startOnLoad: true, theme: 'base', flowchart: { curve: 'basis' } });</script>
+  </div>
+  
+  
+  </body>
+  </html>
