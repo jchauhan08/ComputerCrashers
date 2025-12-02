@@ -1,5 +1,7 @@
+---
 layout: base
 title: Map
-authors: Rishabh Jha
+authors: Rishabh Jha,
 description: "Interactive map"
-permalink: /map
+permalink: /candyland/map
+---
