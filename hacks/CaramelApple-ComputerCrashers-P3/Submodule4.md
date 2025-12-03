@@ -1,5 +1,5 @@
 ---
-layout: post
+layout: base
 title: Chilling in a Hot Chocolate tub with friends
 authors: Shay Mortensen
 permalink: /candyland/hotchocolate

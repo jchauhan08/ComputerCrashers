@@ -1,5 +1,5 @@
 ---
-layout: post
+layout: base
 title: Morning Routine Game 
 authors: Anika Marathe
 permalink: /candyland/morningroutine
@@ -46,7 +46,7 @@ permalink: /candyland/morningroutine
 
     .game-container {
         width: 100%;
-        max-width: 600px; /* Reduced width slightly for the 2-col layout */
+        max-width: 800px;
         background-color: white;
         border-radius: 20px;
         box-shadow: 0 10px 30px rgba(0, 0, 0, 0.07);
@@ -68,8 +68,7 @@ permalink: /candyland/morningroutine
     
     #items-grid {
         display: grid;
-        /* UPDATED: Forced 2 columns to match your Row/Col description exactly */
-        grid-template-columns: repeat(2, 1fr); 
+        grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
         gap: 20px;
         margin-top: 20px;
     }
@@ -227,6 +226,8 @@ document.addEventListener('DOMContentLoaded', () => {
         "Bubblegum Face Wash": "/images/facewash.png"
     };
 
+    // We only need the correct item per round now.
+    // The visual grid will stay consistent.
     const gameData = [
         {
             round: 1,
@@ -267,22 +268,21 @@ document.addEventListener('DOMContentLoaded', () => {
     const scoreDisplay = document.getElementById('score-display');
     const gameOverModal = document.getElementById('game-over-modal');
 
-    // Shuffle function removed for the demo
-    // function shuffle(array) { ... }
+    function shuffle(array) {
+        for (let i = array.length - 1; i > 0; i--) {
+            const j = Math.floor(Math.random() * (i + 1));
+            [array[i], array[j]] = [array[j], array[i]];
+        }
+        return array;
+    }
 
     // --- INITIALIZATION ---
     function initGame() {
-        // --- DEMO MODE: FIXED POSITIONS ---
-        // I have matched the keys here to the names in 'imagePaths'
-        const boardLayout = [
-            "Candy Cane Toothbrush",   // Row 1 Left
-            "Marshmallow Soap",        // Row 1 Right
-            "Peppermint Comb",         // Row 2 Left
-            "Caramel Coffee",          // Row 2 Right
-            "Breakfast Bar",           // Row 3 Left
-            "Bubblegum Face Wash",     // Row 3 Right
-            "Gummy Vitamin Bottle"     // Row 4 Left (only item)
-        ];
+        // 1. Get all available items from the image dictionary
+        const allItems = Object.keys(imagePaths);
+        
+        // 2. Shuffle them ONCE. They will stay in this order forever.
+        const boardLayout = shuffle([...allItems]);
         
         // 3. Build the Grid ONCE.
         grid.innerHTML = '';

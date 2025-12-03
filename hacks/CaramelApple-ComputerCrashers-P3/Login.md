@@ -1,5 +1,5 @@
 ---
-layout: post
+layout: base
 title: Welcome To Caramel Apple
 authors: Anika Marathe
 permalink: /candyland/login
