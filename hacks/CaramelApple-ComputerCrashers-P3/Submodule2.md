@@ -1,5 +1,5 @@
 ---
-layout: post
+layout: base
 title: Candyland Maze Adventure
 authors: Jaynee Chauhan
 permalink: /candyland/workmaze
