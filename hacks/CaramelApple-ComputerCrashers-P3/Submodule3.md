@@ -269,7 +269,9 @@ permalink: /candyland/whack-a-bug
         </div>
     </div>
 
-    <script>
+    <script type="module">
+
+        import { saveGameScore, viewScores } from '/assets/js/candyland/candyland_api.js';
         const grid = document.getElementById("grid");
         const scoreDisplay = document.getElementById("score");
         const timerDisplay = document.getElementById("timer");
@@ -397,6 +399,8 @@ permalink: /candyland/whack-a-bug
             if (score === 0) {
                 earnedBadges.push({ icon: '😅', name: 'Better Luck Next Time' });
             }
+
+            saveGameScore('Whack-a-Candy Score:', score);
 
             // Update completion screen
             document.getElementById('finalScore').textContent = score;
