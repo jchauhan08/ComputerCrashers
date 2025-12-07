@@ -412,7 +412,9 @@ permalink: /candyland/workmaze
         </div>
     </div>
 
-    <script>
+    <script type="module">
+
+        import { saveGameScore, viewScores } from '/assets/js/candyland/candyland_api.js';
         // Maze layout: 0 = wall, 1 = path, 2 = gas, 3 = coffee, 4 = friend, 5 = work
         const mazeLayout = [
             [1, 1, 1, 0, 1, 1, 1, 0, 1, 1],
@@ -596,6 +598,8 @@ permalink: /candyland/workmaze
             // Path Finder badge (always earned on completion)
             badgesDiv.innerHTML += '<div class="badge-earned">🧭 Path Finder</div>';
             
+            saveGameScore('Maze Time Taken (sec)', timeTaken);
+
             // Speed badges
             if (timeTaken <= 15) {
                 badgesDiv.innerHTML += '<div class="badge-earned">⚡ Speed Runner</div>';
