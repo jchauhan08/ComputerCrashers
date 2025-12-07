@@ -67,7 +67,7 @@ body {
 
 label { display: block; text-align: left; color: var(--caramel); font-weight: 600; margin-bottom: 5px; width: 90%; }
 
-input[type="text"], input[type="password"], input[type="email"] {
+input[type="text"], input[type="password"] {
   width: 100%; padding: 12px 15px; margin-bottom: 20px; border-radius: 10px; border: 2px solid var(--light-gray); font-size: 1rem; background-color: var(--cream); color: var(--dark-chocolate);
 }
 input:focus { outline: none; border-color: var(--caramel); box-shadow: 0 0 8px rgba(198, 139, 89, 0.3); background-color: var(--cream) !important; }
@@ -122,8 +122,8 @@ input:focus { outline: none; border-color: var(--caramel); box-shadow: 0 0 8px r
       <h2 class="ca-subtitle">Join the Fun!</h2>
       <label for="new-username">Username</label>
       <input id="new-username" type="text" placeholder="Choose a fun username">
-      <label for="new-email">Email</label>
-      <input id="new-email" type="email" placeholder="Enter your email">
+      
+      
       <label for="new-password">Password</label>
       <input id="new-password" type="password" placeholder="Create a strong password">
       <button class="ca-button primary" onclick="attemptSignup()">Create Account</button>
@@ -206,10 +206,11 @@ async function attemptLogin() {
   }
 
   try {
-    const response = await fetch('http://localhost:8086/api/login', {
+    // UPDATED URL HERE 👇
+    const response = await fetch('http://localhost:8587/api/candyland/login', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      credentials: 'include', // <--- THIS LINE IS CRITICAL
+      credentials: 'include', 
       body: JSON.stringify({ username: user, password: pass })
     });
 
@@ -234,16 +235,15 @@ async function attemptLogin() {
     error.textContent = "Server connection failed.";
   }
 }
+
 // --- DISPLAY WELCOME SCREEN ---
 function showWelcomeScreen(name, type) {
     loginSection.style.display = "none";
     welcomeSection.style.display = "block";
 
-    // Update text
     document.getElementById("welcome-title").innerText = `Welcome, ${name}!`;
     document.getElementById("welcome-msg").innerText = `${name} is ready for the day.`;
 
-    // Update Image based on type
     const imgElement = document.getElementById("welcome-img");
     if (type === "girl") {
         imgElement.src = "/images/ginger-girl.png";
@@ -255,19 +255,20 @@ function showWelcomeScreen(name, type) {
 // --- SIGNUP LOGIC ---
 async function attemptSignup() {
     const user = document.getElementById("new-username").value.trim();
-    const email = document.getElementById("new-email").value.trim();
+    //const email = document.getElementById("new-email").value.trim();
     const pass = document.getElementById("new-password").value.trim();
     
-    if (!user || !email || !pass) {
+    if (!user ||!pass) {
         alert("Please fill in all fields");
         return;
     }
 
     try {
-        const response = await fetch('http://localhost:8086/api/signup', {
+        // UPDATED URL HERE 👇
+        const response = await fetch('http://localhost:8587/api/candyland/signup', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ username: user, email: email, password: pass })
+            body: JSON.stringify({ username: user, password: pass })
         });
         
         if (response.ok) {
@@ -283,11 +284,10 @@ async function attemptSignup() {
 }
 
 // --- LOGOUT LOGIC ---
-// --- LOGOUT LOGIC ---
 async function logout() {
     try {
-        // Updated to use localhost AND include credentials
-        await fetch('http://localhost:8086/api/logout', { 
+        // UPDATED URL HERE 👇
+        await fetch('http://localhost:8587/api/candyland/logout', { 
             method: 'POST',
             credentials: 'include' 
         });
@@ -296,26 +296,23 @@ async function logout() {
         console.log("Logout error", e); 
     }
     
-    // Redirect back to login page
     window.location.href = '/candyland/login';
 }
+
 function goToRoutine() {
     window.location.href = '/candyland/morningroutine';
 }
 
 // --- CHARACTER SELECTION LOGIC ---
 function selectCharacter(type) {
-  selectedType = type; // Save to global var
+  selectedType = type; 
 
-  // Visuals
   document.getElementById("girl").classList.remove("selected");
   document.getElementById("boy").classList.remove("selected");
   document.getElementById(type).classList.add("selected");
 
-  // Hide button until name is picked
   document.getElementById("save-start-btn").style.display = "none";
 
-  // Generate Names
   const nameSelector = document.getElementById("name-selector");
   nameSelector.innerHTML = "";
   
@@ -333,12 +330,11 @@ function selectCharacter(type) {
 }
 
 function selectName(tagElement, nameStr) {
-    selectedName = nameStr; // Save to global var
+    selectedName = nameStr; 
 
     document.querySelectorAll('.name-tag').forEach(tag => tag.classList.remove('selected'));
     tagElement.classList.add('selected');
 
-    // Show the SAVE button
     document.getElementById("save-start-btn").style.display = "block";
 }
 
@@ -350,10 +346,11 @@ async function saveAndStart() {
     }
 
     try {
-        const response = await fetch('http://localhost:8086/api/save_character' , {
+        // UPDATED URL HERE 👇
+        const response = await fetch('http://localhost:8587/api/candyland/save_character' , {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            credentials: 'include', // <--- THIS LINE IS CRITICAL
+            credentials: 'include', 
             body: JSON.stringify({ 
                 character_type: selectedType, 
                 character_name: selectedName 
