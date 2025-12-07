@@ -464,6 +464,15 @@ tags: [caramel, party, quest, finale]
             <div class="modal-buttons">
                 <button class="btn secondary" id="playAgain">🔄 Play Again</button>
                 <button class="btn primary" onclick="document.getElementById('badgesBtn').click()">🏆 View Badges</button>
+                <script type="module">
+                // 1. Import BOTH functions
+                import { saveGameScore, viewScores } from '/assets/js/candyland/candyland_api.js';
+
+                // 2. EXPOSE viewScores to the window so the HTML button works
+                window.viewScores = viewScores;
+                </script>
+
+                <button class="btn primary" onclick="viewScores()">View Scores</button>
             </div>
         </div>
     </div>
