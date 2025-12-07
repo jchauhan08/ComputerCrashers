@@ -221,193 +221,164 @@ permalink: /candyland/morningroutine
     
 </div>
 
-<script>
-document.addEventListener('DOMContentLoaded', () => {
+<script type="module">
+    // 1. IMPORT THE SHARED FUNCTION
+    // Make sure this path points to where you actually created the file
+    import { saveGameScore } from '/assets/js/candyland/candyland_api.js';
 
-    // --- CONFIGURATION ---
-    const imagePaths = {
-        "Candy Cane Toothbrush": "/images/tb2.png",
-        "Marshmallow Soap": "/images/soap2.png",
-        "Peppermint Comb": "/images/comb2.png",
-        "Caramel Coffee": "/images/coffee.png",
-        "Breakfast Bar": "/images/bar.png",
-        "Gummy Vitamin Bottle": "/images/gummi2.png",
-        "Bubblegum Face Wash": "/images/facewash.png"
-    };
+    document.addEventListener('DOMContentLoaded', () => {
 
-    // We only need the correct item per round now.
-    // The visual grid will stay consistent.
-    const gameData = [
-        {
-            round: 1,
-            instruction: "Find the Candy Cane Toothbrush!",
-            correctItem: "Candy Cane Toothbrush"
-        },
-        {
-            round: 2,
-            instruction: "Find the Marshmallow Soap!",
-            correctItem: "Marshmallow Soap"
-        },
-        {
-            round: 3,
-            instruction: "Find the Peppermint Comb!",
-            correctItem: "Peppermint Comb"
-        },
-        {
-            round: 4,
-            instruction: "Find the Caramel Coffee!",
-            correctItem: "Caramel Coffee"
-        },
-        {
-            round: 5,
-            instruction: "Find the Breakfast Bar!",
-            correctItem: "Breakfast Bar"
-        }
-    ];
+        // --- CONFIGURATION ---
+        const imagePaths = {
+            "Candy Cane Toothbrush": "/images/tb2.png",
+            "Marshmallow Soap": "/images/soap2.png",
+            "Peppermint Comb": "/images/comb2.png",
+            "Caramel Coffee": "/images/coffee.png",
+            "Breakfast Bar": "/images/bar.png",
+            "Gummy Vitamin Bottle": "/images/gummi2.png",
+            "Bubblegum Face Wash": "/images/facewash.png"
+        };
 
-    // --- STATE VARIABLES ---
-    let currentRound = 0;
-    let score = 0;
-    let isProcessing = false; 
-    let attempts = 0; 
+        const gameData = [
+            { round: 1, instruction: "Find the Candy Cane Toothbrush!", correctItem: "Candy Cane Toothbrush" },
+            { round: 2, instruction: "Find the Marshmallow Soap!", correctItem: "Marshmallow Soap" },
+            { round: 3, instruction: "Find the Peppermint Comb!", correctItem: "Peppermint Comb" },
+            { round: 4, instruction: "Find the Caramel Coffee!", correctItem: "Caramel Coffee" },
+            { round: 5, instruction: "Find the Breakfast Bar!", correctItem: "Breakfast Bar" }
+        ];
 
-    const grid = document.getElementById('items-grid');
-    const instructionText = document.getElementById('instruction-text');
-    const roundTitle = document.getElementById('game-round-title');
-    const scoreDisplay = document.getElementById('score-display');
-    const gameOverModal = document.getElementById('game-over-modal');
+        // --- STATE VARIABLES ---
+        let currentRound = 0;
+        let score = 0;
+        let isProcessing = false; 
+        let attempts = 0; 
 
-    function shuffle(array) {
-        for (let i = array.length - 1; i > 0; i--) {
-            const j = Math.floor(Math.random() * (i + 1));
-            [array[i], array[j]] = [array[j], array[i]];
-        }
-        return array;
-    }
+        const grid = document.getElementById('items-grid');
+        const instructionText = document.getElementById('instruction-text');
+        const roundTitle = document.getElementById('game-round-title');
+        const scoreDisplay = document.getElementById('score-display');
+        const gameOverModal = document.getElementById('game-over-modal');
 
-    // --- INITIALIZATION ---
-    function initGame() {
-        // 1. Get all available items from the image dictionary
-        const allItems = Object.keys(imagePaths);
-        
-        // 2. Shuffle them ONCE. They will stay in this order forever.
-        const boardLayout = shuffle([...allItems]);
-        
-        // 3. Build the Grid ONCE.
-        grid.innerHTML = '';
-        boardLayout.forEach(itemName => {
-            const card = document.createElement('div');
-            card.className = 'item-card';
-            card.dataset.name = itemName;
-
-            card.innerHTML = `
-                <div class="card-inner">
-                    <div class="card-front">?</div>
-                    <div class="card-back">
-                        <img src="${imagePaths[itemName]}" alt="${itemName}">
-                    </div>
-                </div>
-            `;
-            
-            card.addEventListener('click', handleCardClick);
-            grid.appendChild(card);
-        });
-
-        // 4. Start the first round
-        startRound();
-    }
-
-    function startRound() {
-        if (currentRound >= gameData.length) {
-            gameOverModal.style.display = 'flex';
-            return;
-        }
-
-        const roundData = gameData[currentRound];
-        isProcessing = false;
-        attempts = 0; 
-        
-        // Update Text
-        instructionText.textContent = roundData.instruction;
-        roundTitle.textContent = `Morning Routine — Round ${roundData.round}/5`;
-        scoreDisplay.textContent = `Score: ${score}`;
-        
-        // RESET VISUALS: Flip all cards back to "?" and remove colors
-        const allCards = document.querySelectorAll('.item-card');
-        allCards.forEach(card => {
-            card.classList.remove('flipped');
-            const inner = card.querySelector('.card-inner');
-            inner.classList.remove('correct', 'incorrect');
-        });
-    }
-
-    function handleCardClick(event) {
-        const clickedCard = event.currentTarget;
-        
-        // Prevent clicking if busy, or if card is already revealed
-        if (isProcessing || clickedCard.classList.contains('flipped')) return;
-
-        // 1. Flip the card
-        clickedCard.classList.add('flipped');
-        
-        // 2. Increment attempts
-        attempts++;
-
-        const selectedItem = clickedCard.dataset.name;
-        const correctItem = gameData[currentRound].correctItem;
-        const innerCard = clickedCard.querySelector('.card-inner');
-
-        // 3. Check Logic
-        if (selectedItem === correctItem) {
-            // --- CORRECT ---
-            
-            // Point only if attempts <= 2 (allowing for memory errors)
-            if (attempts <= 2) {
-                score++;
+        function shuffle(array) {
+            for (let i = array.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [array[i], array[j]] = [array[j], array[i]];
             }
-            
-            scoreDisplay.textContent = `Score: ${score}`;
-            innerCard.classList.add('correct');
-            isProcessing = true; 
-
-            // Wait a moment, then start next round (which hides cards again)
-            setTimeout(() => {
-                currentRound++;
-                startRound();
-            }, 1500); 
-
-        } else {
-            // --- INCORRECT ---
-            isProcessing = true; 
-            innerCard.classList.add('incorrect'); 
-
-            setTimeout(() => {
-                clickedCard.classList.remove('flipped');
-                innerCard.classList.remove('incorrect');
-                isProcessing = false; 
-            }, 1200); 
+            return array;
         }
-    }
 
-    // Begin
-    initGame();
-});
+        // --- INITIALIZATION ---
+        function initGame() {
+            const allItems = Object.keys(imagePaths);
+            const boardLayout = shuffle([...allItems]);
+            
+            grid.innerHTML = '';
+            boardLayout.forEach(itemName => {
+                const card = document.createElement('div');
+                card.className = 'item-card';
+                card.dataset.name = itemName;
 
-// --- LOGOUT LOGIC ---
-async function logout() {
-    try {
-        // UPDATED URL HERE 👇
-        await fetch('http://localhost:8587/api/candyland/logout', { 
-            method: 'POST',
-            credentials: 'include' 
-        });
-        console.log("Logout successful");
-    } catch(e) { 
-        console.log("Logout error", e); 
+                card.innerHTML = `
+                    <div class="card-inner">
+                        <div class="card-front">?</div>
+                        <div class="card-back">
+                            <img src="${imagePaths[itemName]}" alt="${itemName}">
+                        </div>
+                    </div>
+                `;
+                
+                card.addEventListener('click', handleCardClick);
+                grid.appendChild(card);
+            });
+
+            startRound();
+        }
+
+        function startRound() {
+            // --- GAME OVER LOGIC ---
+            if (currentRound >= gameData.length) {
+                
+                // 2. SAVE SCORE HERE 👇
+                // We use the imported function. 
+                // 'morning_routine_score' is the score_type for the database.
+                saveGameScore('morning_routine_score', score);
+
+                gameOverModal.style.display = 'flex';
+                return;
+            }
+
+            const roundData = gameData[currentRound];
+            isProcessing = false;
+            attempts = 0; 
+            
+            instructionText.textContent = roundData.instruction;
+            roundTitle.textContent = `Morning Routine — Round ${roundData.round}/5`;
+            scoreDisplay.textContent = `Score: ${score}`;
+            
+            const allCards = document.querySelectorAll('.item-card');
+            allCards.forEach(card => {
+                card.classList.remove('flipped');
+                const inner = card.querySelector('.card-inner');
+                inner.classList.remove('correct', 'incorrect');
+            });
+        }
+
+        function handleCardClick(event) {
+            const clickedCard = event.currentTarget;
+            if (isProcessing || clickedCard.classList.contains('flipped')) return;
+
+            clickedCard.classList.add('flipped');
+            attempts++;
+
+            const selectedItem = clickedCard.dataset.name;
+            const correctItem = gameData[currentRound].correctItem;
+            const innerCard = clickedCard.querySelector('.card-inner');
+
+            if (selectedItem === correctItem) {
+                if (attempts <= 2) {
+                    score++;
+                }
+                
+                scoreDisplay.textContent = `Score: ${score}`;
+                innerCard.classList.add('correct');
+                isProcessing = true; 
+
+                setTimeout(() => {
+                    currentRound++;
+                    startRound();
+                }, 1500); 
+
+            } else {
+                isProcessing = true; 
+                innerCard.classList.add('incorrect'); 
+
+                setTimeout(() => {
+                    clickedCard.classList.remove('flipped');
+                    innerCard.classList.remove('incorrect');
+                    isProcessing = false; 
+                }, 1200); 
+            }
+        }
+
+        initGame();
+    });
+
+    // --- LOGOUT LOGIC ---
+    // 3. FIX FOR LOGOUT BUTTON
+    // We attach this to 'window' so the HTML onclick="logout()" can find it.
+    window.logout = async function() {
+        try {
+            await fetch('http://localhost:8587/api/candyland/logout', { 
+                method: 'POST',
+                credentials: 'include' 
+            });
+            console.log("Logout successful");
+        } catch(e) { 
+            console.log("Logout error", e); 
+        }
+        
+        window.location.href = '/candyland/login';
     }
-    
-    window.location.href = '/candyland/login';
-}
 
 </script>
 
