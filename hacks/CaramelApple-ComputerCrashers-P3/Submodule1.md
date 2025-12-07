@@ -188,6 +188,14 @@ permalink: /candyland/morningroutine
         50% { transform: rotateY(180deg) translateX(5px); }
         75% { transform: rotateY(180deg) translateX(-5px); }
     }
+
+    /* Add this to your style section */
+    #logout-btn {
+    position: absolute;
+    top: 25px;
+    right: 25px;
+    z-index: 10; /* Ensures it sits on top of other elements */
+}
 </style>
 </head>
 <body>
@@ -199,7 +207,7 @@ permalink: /candyland/morningroutine
         </h1>
         <p id="instruction-text">Find the Candy Cane Toothbrush!</p>
     </div>
-    
+    <button id="logout-btn" class="ca-button secondary" onclick="logout()">Logout</button>
     <!-- The grid is now generated ONCE at the start -->
     <div id="items-grid"></div>
 
@@ -210,6 +218,7 @@ permalink: /candyland/morningroutine
         <p>You did an amazing job!</p>
         <button id="next-module-btn" onclick="window.location.href='/candyland/workmaze'">Proceed to Module 2</button>
     </div>
+    
 </div>
 
 <script>
@@ -383,6 +392,23 @@ document.addEventListener('DOMContentLoaded', () => {
     // Begin
     initGame();
 });
+
+// --- LOGOUT LOGIC ---
+async function logout() {
+    try {
+        // UPDATED URL HERE 👇
+        await fetch('http://localhost:8587/api/candyland/logout', { 
+            method: 'POST',
+            credentials: 'include' 
+        });
+        console.log("Logout successful");
+    } catch(e) { 
+        console.log("Logout error", e); 
+    }
+    
+    window.location.href = '/candyland/login';
+}
+
 </script>
 
 </body>
