@@ -490,7 +490,10 @@ tags: [caramel, party, quest, finale]
         </div>
     </div>
 
-    <script>
+    <script type="module">
+
+        import { saveGameScore, viewScores } from '/assets/js/candyland/candyland_api.js';
+
         const room = document.getElementById('partyRoom');
         const completeOverlay = document.getElementById('completeOverlay');
         const badgesOverlay = document.getElementById('badgesOverlay');
@@ -572,6 +575,11 @@ tags: [caramel, party, quest, finale]
 
         function checkCompletion() {
             if (seenCharacters.size >= 3 && usedObjects.size >= 2) {
+
+                saveGameScore('ending_characters_score', seenCharacters.size);
+                saveGameScore('ending_candies_score', usedObjects.size);
+
+
                 setTimeout(() => {
                     completeOverlay.classList.add('show');
                     confettiBurst();
