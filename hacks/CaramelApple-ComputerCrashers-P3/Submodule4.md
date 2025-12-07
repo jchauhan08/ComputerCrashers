@@ -415,7 +415,9 @@ permalink: /candyland/hotchocolate
         </div>
     </div>
 
-    <script>
+    <script type="module">
+
+        import { saveGameScore, viewScores } from '/assets/js/candyland/candyland_api.js';
         (function(){
             // Values: good = 1, neutral = 0, bad = -1
             const interactions = [
@@ -550,7 +552,7 @@ permalink: /candyland/hotchocolate
                 if (score === 0 || score < 0) {
                     earnedBadges.push({ icon: '💬', name: 'Learning to Socialize' });
                 }
-
+                saveGameScore('Hot Chocolate Tub Hangout Score', score);
                 // Update completion screen
                 document.getElementById('finalScore').textContent = Math.max(0, score);
                 
