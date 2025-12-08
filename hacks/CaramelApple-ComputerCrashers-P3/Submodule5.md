@@ -455,6 +455,14 @@ tags: [caramel, party, quest, finale]
         </div>
     </div>
 
+    <audio id="partyMusic" loop preload="auto">
+        <source src="{{ '/assets/audio/audiocleaner_20251207_231651_file.mp4' | relative_url }}" type="audio/mp4">
+    </audio>
+
+    <audio id="interactionSound" preload="auto">
+        <source src="{{ '/assets/audio/audiocleaner_20251207_234028_file.mp4' | relative_url }}" type="audio/mp4">
+    </audio>
+
     <!-- Victory Overlay -->
     <div class="overlay" id="completeOverlay">
         <div class="modal-card">
@@ -464,14 +472,6 @@ tags: [caramel, party, quest, finale]
             <div class="modal-buttons">
                 <button class="btn secondary" id="playAgain">🔄 Play Again</button>
                 <button class="btn primary" onclick="document.getElementById('badgesBtn').click()">🏆 View Badges</button>
-                <script type="module">
-                // 1. Import BOTH functions
-                import { saveGameScore, viewScores } from '/assets/js/candyland/candyland_api.js';
-
-                // 2. EXPOSE viewScores to the window so the HTML button works
-                window.viewScores = viewScores;
-                </script>
-
                 <button class="btn primary" onclick="viewScores()">View Scores</button>
             </div>
         </div>
@@ -492,7 +492,8 @@ tags: [caramel, party, quest, finale]
 
     <script type="module">
 
-        import { saveGameScore, viewScores } from '/assets/js/candyland/candyland_api.js';
+        import { saveGameScore, viewScores } from '{{ '/assets/js/candyland/candyland_api.js' | relative_url }}';
+        window.viewScores = viewScores;
 
         const room = document.getElementById('partyRoom');
         const completeOverlay = document.getElementById('completeOverlay');
@@ -505,6 +506,8 @@ tags: [caramel, party, quest, finale]
         const closeBadges = document.getElementById('closeBadges');
         const charProgress = document.getElementById('charProgress');
         const objProgress = document.getElementById('objProgress');
+        const partyMusic = document.getElementById('partyMusic');
+        const interactionSound = document.getElementById('interactionSound');
 
         const requiredCharacters = new Set(['ginger', 'ginger-girl', 'gummy']);
         const requiredObjects = new Set(['lollipop', 'candycane']);
@@ -535,6 +538,13 @@ tags: [caramel, party, quest, finale]
                     badgesGrid.appendChild(badgeEl);
                 });
             }
+        }
+
+        // Quick celebratory sound for every interaction
+        function playInteractionSound() {
+            if (!interactionSound) return;
+            interactionSound.currentTime = 0;
+            interactionSound.play().catch(err => console.warn('Unable to play interaction sound:', err));
         }
 
         function showBubble(el) {
@@ -595,6 +605,8 @@ tags: [caramel, party, quest, finale]
             const type = entity.dataset.type;
             const id = entity.dataset.id;
 
+            playInteractionSound();
+
             if (type === 'character') {
                 if (!seenCharacters.has(id)) {
                     seenCharacters.add(id);
@@ -649,6 +661,22 @@ tags: [caramel, party, quest, finale]
         musicToggle.addEventListener('click', () => {
             musicOn = !musicOn;
             musicToggle.innerHTML = musicOn ? '🔊 Music' : '🔇 Music';
+
+            if (!partyMusic) {
+                console.warn('Party music element missing');
+                return;
+            }
+
+            if (musicOn) {
+                partyMusic.currentTime = 0;
+                partyMusic.play().catch(err => {
+                    console.warn('Unable to start music:', err);
+                    musicOn = false;
+                    musicToggle.innerHTML = '🔇 Music';
+                });
+            } else {
+                partyMusic.pause();
+            }
         });
 
         // Reset
