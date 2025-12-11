@@ -12,11 +12,11 @@ permalink: /candyland/map
 // === Candy Land 5-Stop Map — Fullscreen Candy Themed ===
 
 const mapNodes = [
-  { id: 0, label: "Cotton Candy Gate", link: "/cotton-candy-gate", type:"gumdrop", relX:0.1, relY:0.8 },
-  { id: 1, label: "Gumdrop Grove", link: "/gumdrop-grove", type:"gumdrop", relX:0.28, relY:0.64 },
-  { id: 2, label: "Lollipop Lake", link: "/lollipop-lake", type:"lollipop", relX:0.45, relY:0.52 },
-  { id: 3, label: "Marshmallow Meadow", link: "/marshmallow-meadow", type:"marshmallow", relX:0.62, relY:0.36 },
-  { id: 4, label: "Candy Castle", link: "/candy-castle", type:"castle", relX:0.78, relY:0.24 }
+  { id: 0, label: "Good Morning", link: "/candyland/morningroutine", type:"gumdrop", relX:0.1, relY:0.8 },
+  { id: 1, label: "Workmaze", link: "/candyland/workmaze", type:"gumdrop", relX:0.28, relY:0.64 },
+  { id: 2, label: "Whack A Bug", link: "/candyland/whack-a-bug", type:"lollipop", relX:0.45, relY:0.52 },
+  { id: 3, label: "Hot Chocolate", link: "/candyland/hotchocolate", type:"marshmallow", relX:0.62, relY:0.36 },
+  { id: 4, label: "Ending", link: "/candyland/ending", type:"castle", relX:0.78, relY:0.24 }
 ];
 
 const canvas = document.getElementById("mapCanvas");
