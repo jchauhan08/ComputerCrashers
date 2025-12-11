@@ -1,7 +1,7 @@
 ---
 layout: base
 title: Map
-authors: Rishabh Jha,
+authors: Avantika Chittari
 description: "Interactive map"
 permalink: /candyland/map
 ---

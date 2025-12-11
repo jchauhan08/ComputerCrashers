@@ -2,7 +2,7 @@
 layout: base
 title: Whack-a-Bug
 Author: Avantika Chittari
-permalink: /candyland/whack-a-bug
+permalink: /candyland/whack-a-candy
 ---
 
 <html lang="en">
