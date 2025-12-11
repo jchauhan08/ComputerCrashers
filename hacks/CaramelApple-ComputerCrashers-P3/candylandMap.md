@@ -13,10 +13,10 @@ permalink: /candyland/map
 
 const mapNodes = [
   { id: 0, label: "Good Morning", link: "/candyland/morningroutine", type:"gumdrop", relX:0.1, relY:0.8 },
-  { id: 1, label: "Workmaze", link: "/candyland/workmaze", type:"gumdrop", relX:0.28, relY:0.64 },
-  { id: 2, label: "Whack A Bug", link: "/candyland/whack-a-bug", type:"lollipop", relX:0.45, relY:0.52 },
-  { id: 3, label: "Hot Chocolate", link: "/candyland/hotchocolate", type:"marshmallow", relX:0.62, relY:0.36 },
-  { id: 4, label: "Ending", link: "/candyland/ending", type:"castle", relX:0.78, relY:0.24 }
+  { id: 1, label: "Getting to work", link: "/candyland/workmaze", type:"gumdrop", relX:0.28, relY:0.64 },
+  { id: 2, label: "At work", link: "/candyland/whack-a-bug", type:"lollipop", relX:0.45, relY:0.52 },
+  { id: 3, label: "Hanging with friends", link: "/candyland/hotchocolate", type:"marshmallow", relX:0.62, relY:0.36 },
+  { id: 4, label: "Party!!", link: "/candyland/ending", type:"castle", relX:0.78, relY:0.24 }
 ];
 
 const canvas = document.getElementById("mapCanvas");
