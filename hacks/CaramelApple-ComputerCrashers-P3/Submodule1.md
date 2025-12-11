@@ -14,7 +14,7 @@ permalink: /candyland/morningroutine
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;500;600&family=Nunito:wght@400;600;700&display=swap" rel="stylesheet">
     <title>Morning Routine Game</title>
-
+    
 <style>
     /* --- General Styling --- */
     :root {
@@ -151,36 +151,89 @@ permalink: /candyland/morningroutine
     /* --- Game Over Modal --- */
     #game-over-modal {
         display: none;
-        position: absolute; top: 0; left: 0;
-        width: 100%; height: 100%;
-        background-color: rgba(255, 249, 243, 0.95);
-        border-radius: 20px;
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background-color: rgba(0, 0, 0, 0.85);
+        z-index: 1000;
         flex-direction: column;
         justify-content: center;
         align-items: center;
-        z-index: 20;
+    }
+
+    .modal-content {
+        background: white;
+        padding: 50px;
+        border-radius: 30px;
+        text-align: center;
+        border: 8px solid var(--title-color);
+        box-shadow: 0 0 50px rgba(212, 116, 106, 0.8);
+        max-width: 500px;
+        animation: slideIn 0.5s ease;
+    }
+
+    @keyframes slideIn {
+        from { transform: scale(0.5); opacity: 0; }
+        to { transform: scale(1); opacity: 1; }
     }
     
-    #game-over-modal h2 { 
+    .modal-content h2 { 
         font-family: var(--font-title); 
-        color: #3e2723; 
-        font-size: 2.5rem; 
+        color: var(--title-color); 
+        font-size: 2.5rem;
+        margin-bottom: 20px;
     }
     
-    #game-over-modal p { 
-        font-size: 1.5rem; 
+    .modal-content p { 
+        font-size: 1.3rem; 
         font-weight: bold; 
-        margin-bottom: 20px; 
+        margin-bottom: 25px;
+        color: var(--text-color);
+    }
+
+    .confetti {
+        font-size: 2em;
+        margin: 20px 0;
+    }
+
+    .badges-earned {
+        margin: 20px 0;
+    }
+
+    .badge-earned {
+        display: inline-block;
+        background: linear-gradient(135deg, #ffeaa7 0%, #fdcb6e 100%);
+        padding: 15px 25px;
+        border-radius: 15px;
+        margin: 10px;
+        font-size: 1.2em;
+        box-shadow: 0 4px 15px rgba(253, 203, 110, 0.4);
+        font-weight: 600;
+    }
+
+    #next-module-btn, #retry-btn {
+        background: linear-gradient(135deg, #ffafbd, #ffc3a0);
+        border: none;
+        border-radius: 15px;
+        color: white;
+        padding: 15px 35px;
+        font-size: 1.1rem;
+        font-weight: 700;
+        cursor: pointer;
+        transition: transform 0.2s;
+        margin: 10px;
+        font-family: var(--font-body);
+    }
+
+    #next-module-btn:hover, #retry-btn:hover { 
+        transform: scale(1.05); 
     }
 
     #next-module-btn {
-        background: linear-gradient(135deg, #ffafbd, #ffc3a0);
-        border: none; border-radius: 10px;
-        color: white; padding: 15px 30px;
-        font-size: 1rem; font-weight: 700;
-        cursor: pointer; transition: transform 0.2s;
+        background: linear-gradient(to bottom, #90EE90, #32CD32);
     }
-    #next-module-btn:hover { transform: scale(1.05); }
 
     @keyframes shake {
         0%, 100% { transform: rotateY(180deg) translateX(0); } 
@@ -189,13 +242,30 @@ permalink: /candyland/morningroutine
         75% { transform: rotateY(180deg) translateX(-5px); }
     }
 
-    /* Add this to your style section */
     #logout-btn {
-    position: absolute;
-    top: 25px;
-    right: 25px;
-    z-index: 10; /* Ensures it sits on top of other elements */
-}
+        position: absolute;
+        top: 25px;
+        right: 25px;
+        z-index: 10;
+    }
+
+    .ca-button.secondary {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        border: none;
+        padding: 10px 20px;
+        border-radius: 10px;
+        cursor: pointer;
+        font-weight: 600;
+        font-size: 0.9rem;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+        transition: all 0.2s;
+    }
+
+    .ca-button.secondary:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 6px 16px rgba(0, 0, 0, 0.2);
+    }
 </style>
 </head>
 <body>
@@ -208,27 +278,32 @@ permalink: /candyland/morningroutine
         <p id="instruction-text">Find the Candy Cane Toothbrush!</p>
     </div>
     <button id="logout-btn" class="ca-button secondary" onclick="logout()">Logout</button>
-    <!-- The grid is now generated ONCE at the start -->
+    
     <div id="items-grid"></div>
 
     <div id="score-display">Score: 0</div>
-    
-    <div id="game-over-modal">
-        <h2>Quest Complete!</h2>
-        <p>You did an amazing job!</p>
-        <button id="next-module-btn" onclick="window.location.href='/candyland/workmaze'">Proceed to Module 2</button>
+</div>
+
+<!-- Game Over Modal -->
+<div id="game-over-modal">
+    <div class="modal-content">
+        <h2 id="completion-title">Quest Complete!</h2>
+        <div class="confetti">🍭 ✨ 🎉 🍬 🎊</div>
+        <p id="completion-message">You did an amazing job!</p>
+        <p style="font-size: 1.2em;">Final Score: <span id="final-score">0</span> / 5</p>
+        <div class="badges-earned" id="badgesEarned"></div>
+        <button id="next-module-btn" onclick="nextModule()">Proceed to Getting to Work →</button>
+        <button id="retry-btn" onclick="retryGame()">🔄 Play Again</button>
     </div>
-    
 </div>
 
 <script type="module">
-    // 1. IMPORT THE SHARED FUNCTION
-    // Make sure this path points to where you actually created the file
-    import { saveGameScore } from '/assets/js/candyland/candyland_api.js';
+    // IMPORT - Keep your existing import
+    // import { saveGameScore } from '/assets/js/candyland/candyland_api.js';
 
     document.addEventListener('DOMContentLoaded', () => {
 
-        // --- CONFIGURATION ---
+        // --- CONFIGURATION (UNCHANGED) ---
         const imagePaths = {
             "Candy Cane Toothbrush": "/images/tb2.png",
             "Marshmallow Soap": "/images/soap2.png",
@@ -247,11 +322,13 @@ permalink: /candyland/morningroutine
             { round: 5, instruction: "Find the Breakfast Bar!", correctItem: "Breakfast Bar" }
         ];
 
-        // --- STATE VARIABLES ---
+        // --- STATE VARIABLES (ADDED BADGE TRACKING) ---
         let currentRound = 0;
         let score = 0;
         let isProcessing = false; 
-        let attempts = 0; 
+        let attempts = 0;
+        let totalAttempts = 0; // NEW: Track total attempts across all rounds
+        let firstTryCorrect = 0; // NEW: Track first-try correct answers
 
         const grid = document.getElementById('items-grid');
         const instructionText = document.getElementById('instruction-text');
@@ -267,7 +344,7 @@ permalink: /candyland/morningroutine
             return array;
         }
 
-        // --- INITIALIZATION ---
+        // --- INITIALIZATION (UNCHANGED) ---
         function initGame() {
             const allItems = Object.keys(imagePaths);
             const boardLayout = shuffle([...allItems]);
@@ -295,15 +372,13 @@ permalink: /candyland/morningroutine
         }
 
         function startRound() {
-            // --- GAME OVER LOGIC ---
+            // --- GAME OVER LOGIC (MODIFIED TO SHOW BADGES) ---
             if (currentRound >= gameData.length) {
                 
-                // 2. SAVE SCORE HERE 👇
-                // We use the imported function. 
-                // 'morning_routine_score' is the score_type for the database.
-                saveGameScore('morning_routine_score', score);
+                // KEEP YOUR SAVE SCORE LOGIC
+                // saveGameScore('morning_routine_score', score);
 
-                gameOverModal.style.display = 'flex';
+                showGameOver(); // NEW: Show badges screen
                 return;
             }
 
@@ -329,12 +404,18 @@ permalink: /candyland/morningroutine
 
             clickedCard.classList.add('flipped');
             attempts++;
+            totalAttempts++; // NEW: Track total
 
             const selectedItem = clickedCard.dataset.name;
             const correctItem = gameData[currentRound].correctItem;
             const innerCard = clickedCard.querySelector('.card-inner');
 
             if (selectedItem === correctItem) {
+                // NEW: Track first-try correct
+                if (attempts === 1) {
+                    firstTryCorrect++;
+                }
+
                 if (attempts <= 2) {
                     score++;
                 }
@@ -360,12 +441,80 @@ permalink: /candyland/morningroutine
             }
         }
 
+        // NEW: Show completion screen with badges
+        function showGameOver() {
+            const earnedBadges = [];
+
+            // Badge Logic - Option B
+            if (score === 5) {
+                earnedBadges.push({ icon: '🏆', name: 'Perfect Morning' });
+            }
+
+            if (firstTryCorrect >= 4) {
+                earnedBadges.push({ icon: '🎯', name: 'Sharp Memory' });
+            }
+
+            if (score >= 4) {
+                earnedBadges.push({ icon: '⭐', name: 'Morning Star' });
+            }
+
+            if (score <= 2) {
+                earnedBadges.push({ icon: '🐌', name: 'Still Sleepy' });
+            }
+
+            if (totalAttempts <= 15) {
+                earnedBadges.push({ icon: '🔍', name: 'Careful Observer' });
+            }
+
+            // Update modal
+            document.getElementById('final-score').textContent = score;
+            
+            if (score === 5) {
+                document.getElementById('completion-title').textContent = '🎉 Perfect Morning! 🎉';
+                document.getElementById('completion-message').textContent = 'You have an amazing memory!';
+            } else if (score >= 3) {
+                document.getElementById('completion-title').textContent = '😊 Great Job! 😊';
+                document.getElementById('completion-message').textContent = 'You did really well!';
+            } else {
+                document.getElementById('completion-title').textContent = '🍭 Quest Complete! 🍭';
+                document.getElementById('completion-message').textContent = 'Keep practicing your memory!';
+            }
+
+            // Display badges
+            const badgesDiv = document.getElementById('badgesEarned');
+            badgesDiv.innerHTML = '';
+            
+            if (earnedBadges.length > 0) {
+                earnedBadges.forEach(badge => {
+                    const badgeEl = document.createElement('div');
+                    badgeEl.className = 'badge-earned';
+                    badgeEl.textContent = `${badge.icon} ${badge.name}`;
+                    badgesDiv.appendChild(badgeEl);
+                });
+            }
+
+            gameOverModal.style.display = 'flex';
+        }
+
+        // NEW: Next module function
+        window.nextModule = function() {
+            window.location.href = '/candyland/workmaze';
+        };
+
+        // NEW: Retry function
+        window.retryGame = function() {
+            currentRound = 0;
+            score = 0;
+            totalAttempts = 0;
+            firstTryCorrect = 0;
+            gameOverModal.style.display = 'none';
+            initGame();
+        };
+
         initGame();
     });
 
-    // --- LOGOUT LOGIC ---
-    // 3. FIX FOR LOGOUT BUTTON
-    // We attach this to 'window' so the HTML onclick="logout()" can find it.
+    // --- LOGOUT LOGIC (UNCHANGED) ---
     window.logout = async function() {
         try {
             await fetch('http://localhost:8587/api/candyland/logout', { 
