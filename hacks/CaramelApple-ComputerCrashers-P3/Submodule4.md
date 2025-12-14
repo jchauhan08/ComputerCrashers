@@ -416,8 +416,9 @@ permalink: /candyland/hotchocolate
     </div>
 
     <script type="module">
+        // 1. IMPORT saveGameScore AND saveBadge
+        import { saveGameScore, viewScores, saveBadge } from '/assets/js/candyland/candyland_api.js';
 
-        import { saveGameScore, viewScores } from '/assets/js/candyland/candyland_api.js';
         (function(){
             // Values: good = 1, neutral = 0, bad = -1
             const interactions = [
@@ -552,7 +553,10 @@ permalink: /candyland/hotchocolate
                 if (score === 0 || score < 0) {
                     earnedBadges.push({ icon: '💬', name: 'Learning to Socialize' });
                 }
-                saveGameScore('Hot Chocolate Tub Hangout Score', score);
+
+                // 2. SAVE SCORE TO BACKEND (Standardized name)
+                saveGameScore('hot_chocolate_score', score);
+
                 // Update completion screen
                 document.getElementById('finalScore').textContent = Math.max(0, score);
                 
@@ -564,12 +568,16 @@ permalink: /candyland/hotchocolate
                     document.getElementById('completionMessage').textContent = 'Keep practicing your social skills!';
                 }
 
-                // Display badges
+                // Display badges AND SAVE THEM
                 const badgesDiv = document.getElementById('badgesEarned');
                 badgesDiv.innerHTML = '';
                 
                 if (earnedBadges.length > 0) {
                     earnedBadges.forEach(badge => {
+                        // --- 3. SAVE BADGE TO DB ---
+                        saveBadge(badge.name, badge.icon);
+                        // --------------------------
+
                         const badgeEl = document.createElement('div');
                         badgeEl.className = 'badge-earned';
                         badgeEl.textContent = `${badge.icon} ${badge.name}`;
@@ -580,7 +588,8 @@ permalink: /candyland/hotchocolate
                 completionScreen.classList.add('show');
             }
 
-            function closeCompletion() {
+            // Expose specific functions to window so the HTML onclick="" attributes work
+            window.closeCompletion = function() {
                 completionScreen.classList.remove('show');
                 index = 0;
                 score = 0;
@@ -591,7 +600,7 @@ permalink: /candyland/hotchocolate
             }
 
             window.nextModule = function() {
-                window.location.href = '/candyland/ending'; // Navigate to Submodule 5
+                window.location.href = '/candyland/ending'; 
             };
 
             retryBtn.addEventListener('click', () => {
@@ -603,7 +612,7 @@ permalink: /candyland/hotchocolate
                 render();
             });
 
-            // initial render
+            // Initial render call
             render();
         })();
     </script>
