@@ -299,7 +299,7 @@ permalink: /candyland/morningroutine
 
 <script type="module">
     // IMPORT - Keep your existing import
-    import { saveGameScore } from '/assets/js/candyland/candyland_api.js';
+    import { saveGameScore , saveBadge } from '/assets/js/candyland/candyland_api.js';
 
     document.addEventListener('DOMContentLoaded', () => {
 
@@ -486,6 +486,9 @@ permalink: /candyland/morningroutine
             
             if (earnedBadges.length > 0) {
                 earnedBadges.forEach(badge => {
+                    // --- Save to DB ---
+                    saveBadge(badge.name, badge.icon); 
+                    // ---------
                     const badgeEl = document.createElement('div');
                     badgeEl.className = 'badge-earned';
                     badgeEl.textContent = `${badge.icon} ${badge.name}`;
