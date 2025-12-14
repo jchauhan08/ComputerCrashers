@@ -5,7 +5,6 @@ authors: Jaynee Chauhan
 permalink: /candyland/workmaze
 ---
 
-
 <html lang="en">
 <head>
     <meta charset="UTF-8">
@@ -413,8 +412,9 @@ permalink: /candyland/workmaze
     </div>
 
     <script type="module">
+        // 1. IMPORT THE API FUNCTIONS
+        import { saveGameScore, viewScores, saveBadge } from '/assets/js/candyland/candyland_api.js';
 
-        import { saveGameScore, viewScores } from '/assets/js/candyland/candyland_api.js';
         // Maze layout: 0 = wall, 1 = path, 2 = gas, 3 = coffee, 4 = friend, 5 = work
         const mazeLayout = [
             [1, 1, 1, 0, 1, 1, 1, 0, 1, 1],
@@ -591,27 +591,33 @@ permalink: /candyland/workmaze
             const timeTaken = 30 - timeRemaining;
             finalTimeEl.textContent = `${timeTaken} seconds`;
             
-            // Determine badges
             const badgesDiv = document.getElementById('badgesEarned');
             badgesDiv.innerHTML = '';
             
+            // 2. SAVE SCORE TO BACKEND
+            saveGameScore('maze_score', timeTaken);
+
+            // 3. BADGE LOGIC & SAVING
+            
             // Path Finder badge (always earned on completion)
+            saveBadge('Path Finder', '🧭');
             badgesDiv.innerHTML += '<div class="badge-earned">🧭 Path Finder</div>';
             
-            saveGameScore('Maze Time Taken (sec)', timeTaken);
-
             // Speed badges
             if (timeTaken <= 15) {
+                saveBadge('Speed Runner', '⚡');
                 badgesDiv.innerHTML += '<div class="badge-earned">⚡ Speed Runner</div>';
             }
             
-            // Directionally Challenged badge
+            // Directionally Challenged badge (Win condition)
             if (wallHits >= 5) {
+                saveBadge('Directionally Challenged', '🌀');
                 badgesDiv.innerHTML += '<div class="badge-earned">🌀 Directionally Challenged</div>';
             }
             
             // Perfect Navigation badge
             if (wallHits === 0) {
+                saveBadge('Perfect Navigator', '🎯');
                 badgesDiv.innerHTML += '<div class="badge-earned">🎯 Perfect Navigator</div>';
             }
             
@@ -622,11 +628,12 @@ permalink: /candyland/workmaze
             gameComplete = true;
             clearInterval(timerInterval);
             
-            // Award Directionally Challenged badge if earned
             const gameOverBadgesDiv = document.getElementById('gameOverBadges');
             gameOverBadgesDiv.innerHTML = '';
             
+            // Award Directionally Challenged badge if earned even on loss
             if (wallHits >= 5) {
+                saveBadge('Directionally Challenged', '🌀');
                 gameOverBadgesDiv.innerHTML = '<div class="badge-earned">🌀 Directionally Challenged</div><p style="font-size: 1em;">At least you earned a badge! 😅</p>';
             }
             
@@ -680,6 +687,9 @@ permalink: /candyland/workmaze
                 case 'ArrowRight': movePlayer(1, 0); break;
             }
         });
+
+        // Make resetGame globally available for the button onclicks
+        window.resetGame = resetGame;
 
         createMaze();
         showMessage('Welcome! Use arrow keys to navigate to the gas station first! ⛽');

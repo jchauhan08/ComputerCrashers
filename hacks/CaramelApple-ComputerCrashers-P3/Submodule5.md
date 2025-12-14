@@ -351,6 +351,7 @@ tags: [caramel, party, quest, finale]
             transition: transform 0.2s;
         }
 
+        /* When a badge comes from the DB, we consider it 'earned' */
         .badge-item.earned {
             background: linear-gradient(135deg, #ffeaa7 0%, #fdcb6e 100%);
             box-shadow: 0 4px 15px rgba(253, 203, 110, 0.4);
@@ -471,6 +472,7 @@ tags: [caramel, party, quest, finale]
             <p>You've successfully completed the entire Caramel Apple Quest! You met everyone, explored Candyland, and made it to the big celebration!</p>
             <div class="modal-buttons">
                 <button class="btn secondary" id="playAgain">🔄 Play Again</button>
+                <!-- This button also triggers the badge view -->
                 <button class="btn primary" onclick="document.getElementById('badgesBtn').click()">🏆 View Badges</button>
                 <button class="btn primary" onclick="viewScores()">View Scores</button>
             </div>
@@ -485,14 +487,15 @@ tags: [caramel, party, quest, finale]
             <p>Earn badges by completing different parts of the quest!</p>
             
             <div class="badges-grid" id="badgesGrid">
-                <!-- Badges will be added here dynamically -->
+                <!-- Badges will be loaded here from the database -->
+                <p style="grid-column: 1/-1; text-align: center;">Loading...</p>
             </div>
         </div>
     </div>
 
     <script type="module">
 
-        import { saveGameScore, viewScores } from '{{ '/assets/js/candyland/candyland_api.js' | relative_url }}';
+        import { saveGameScore, viewScores , viewBadges} from '{{ '/assets/js/candyland/candyland_api.js' | relative_url }}';
         window.viewScores = viewScores;
 
         const room = document.getElementById('partyRoom');
@@ -515,30 +518,55 @@ tags: [caramel, party, quest, finale]
         const usedObjects = new Set();
         let musicOn = false;
 
-        // Badge system - you can customize these!
-        const badges = [
-            // Example badge format (currently empty, add your own!):
-            // { id: 'badge-social', icon: '🎭', name: 'Social Butterfly' },
-            // { id: 'badge-explorer', icon: '🗺️', name: 'Explorer' },
-        ];
-
-        function initBadges() {
-            badgesGrid.innerHTML = '';
-            if (badges.length === 0) {
-                badgesGrid.innerHTML = '<p style="grid-column: 1/-1; text-align: center; color: #999; padding: 20px;">No badges configured yet. Add badges to the badges array in the script!</p>';
-            } else {
-                badges.forEach(badge => {
-                    const badgeEl = document.createElement('div');
-                    badgeEl.className = 'badge-item';
-                    badgeEl.id = badge.id;
-                    badgeEl.innerHTML = `
-                        <div class="badge-icon">${badge.icon}</div>
-                        <div class="badge-name">${badge.name}</div>
-                    `;
-                    badgesGrid.appendChild(badgeEl);
+        // --- NEW: FUNCTION TO FETCH AND DISPLAY BADGES ---
+        async function fetchAndDisplayBadges() {
+            badgesGrid.innerHTML = '<p style="grid-column: 1/-1; text-align: center;">Loading collection...</p>';
+            
+            try {
+                // Call your backend API
+                const response = await fetch('http://localhost:8587/api/candyland/get_badges', {
+                    method: 'GET',
+                    credentials: 'include'
                 });
+
+                if (response.ok) {
+                    const badges = await response.json();
+                    
+                    badgesGrid.innerHTML = ''; // Clear loading text
+                    
+                    if (badges.length === 0) {
+                        badgesGrid.innerHTML = `
+                            <div style="grid-column: 1/-1; text-align: center; color: #666; padding: 20px;">
+                                <div style="font-size: 30px;">⏳</div>
+                                <p>No badges collected yet. Play the mini-games to earn them!</p>
+                            </div>
+                        `;
+                        return;
+                    }
+
+                    // Render each badge returned from the database
+                    badges.forEach(badge => {
+                        const badgeEl = document.createElement('div');
+                        // Add 'earned' class so it shows up in color
+                        badgeEl.className = 'badge-item earned'; 
+                        
+                        badgeEl.innerHTML = `
+                            <div class="badge-icon">${badge.icon}</div>
+                            <div class="badge-name">${badge.name}</div>
+                        `;
+                        badgesGrid.appendChild(badgeEl);
+                    });
+
+                } else {
+                    console.error("Failed to fetch badges");
+                    badgesGrid.innerHTML = '<p style="color:red; text-align:center;">Could not load badges.</p>';
+                }
+            } catch (e) {
+                console.error("Error fetching badges:", e);
+                badgesGrid.innerHTML = '<p style="color:red; text-align:center;">Server connection error.</p>';
             }
         }
+        // --------------------------------------------------
 
         // Quick celebratory sound for every interaction
         function playInteractionSound() {
@@ -571,32 +599,20 @@ tags: [caramel, party, quest, finale]
             
             if (seenCharacters.size === 3) {
                 charProgress.classList.add('complete');
-                // unlockBadge('badge-social'); // Uncomment when you add badges
             }
             if (usedObjects.size === 2) {
                 objProgress.classList.add('complete');
-                // unlockBadge('badge-explorer'); // Uncomment when you add badges
             }
-        }
-
-        function unlockBadge(badgeId) {
-            document.getElementById(badgeId).classList.add('earned');
         }
 
         function checkCompletion() {
             if (seenCharacters.size >= 3 && usedObjects.size >= 2) {
-
                 saveGameScore('ending_characters_score', seenCharacters.size);
                 saveGameScore('ending_candies_score', usedObjects.size);
-
 
                 setTimeout(() => {
                     completeOverlay.classList.add('show');
                     confettiBurst();
-                    // Unlock completion badges here when you add them
-                    // unlockBadge('badge-party');
-                    // unlockBadge('badge-master');
-                    // unlockBadge('badge-complete');
                 }, 800);
             }
         }
@@ -697,6 +713,8 @@ tags: [caramel, party, quest, finale]
         // Badges modal
         badgesBtn.addEventListener('click', () => {
             badgesOverlay.classList.add('show');
+            // FETCH BADGES WHEN MODAL OPENS
+            fetchAndDisplayBadges();
         });
 
         closeBadges.addEventListener('click', () => {
@@ -709,8 +727,6 @@ tags: [caramel, party, quest, finale]
             }
         });
 
-        // Initialize
-        initBadges();
         updateProgress();
     </script>
 </body>
