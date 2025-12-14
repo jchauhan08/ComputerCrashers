@@ -270,8 +270,9 @@ permalink: /candyland/whack-a-candy
     </div>
 
     <script type="module">
-
-        import { saveGameScore, viewScores } from '/assets/js/candyland/candyland_api.js';
+        // 1. IMPORT saveGameScore AND saveBadge
+        import { saveGameScore, viewScores, saveBadge } from '/assets/js/candyland/candyland_api.js';
+        
         const grid = document.getElementById("grid");
         const scoreDisplay = document.getElementById("score");
         const timerDisplay = document.getElementById("timer");
@@ -400,7 +401,8 @@ permalink: /candyland/whack-a-candy
                 earnedBadges.push({ icon: '😅', name: 'Better Luck Next Time' });
             }
 
-            saveGameScore('Whack-a-Candy Score:', score);
+            // 2. SAVE SCORE TO BACKEND
+            saveGameScore('whack_a_mole_score', score);
 
             // Update completion screen
             document.getElementById('finalScore').textContent = score;
@@ -416,12 +418,16 @@ permalink: /candyland/whack-a-candy
                 document.getElementById('completionMessage').textContent = 'Keep practicing those reflexes!';
             }
 
-            // Display badges
+            // Display badges AND SAVE THEM
             const badgesDiv = document.getElementById('badgesEarned');
             badgesDiv.innerHTML = '';
             
             if (earnedBadges.length > 0) {
                 earnedBadges.forEach(badge => {
+                    // --- 3. SAVE BADGE TO DB ---
+                    saveBadge(badge.name, badge.icon);
+                    // --------------------------
+
                     const badgeEl = document.createElement('div');
                     badgeEl.className = 'badge-earned';
                     badgeEl.textContent = `${badge.icon} ${badge.name}`;
@@ -432,11 +438,12 @@ permalink: /candyland/whack-a-candy
             completionScreen.classList.add('show');
         }
 
-        function closeCompletion() {
+        // Attach global functions to window so buttons can find them
+        window.closeCompletion = function() {
             completionScreen.classList.remove('show');
         }
 
-        function nextModule() {
+        window.nextModule = function() {
             window.location.href = '/candyland/hotchocolate'; // Navigate to Submodule 4
         }
 
