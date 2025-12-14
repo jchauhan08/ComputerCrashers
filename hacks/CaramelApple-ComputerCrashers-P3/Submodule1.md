@@ -299,7 +299,7 @@ permalink: /candyland/morningroutine
 
 <script type="module">
     // IMPORT - Keep your existing import
-    // import { saveGameScore } from '/assets/js/candyland/candyland_api.js';
+    import { saveGameScore } from '/assets/js/candyland/candyland_api.js';
 
     document.addEventListener('DOMContentLoaded', () => {
 
@@ -376,7 +376,7 @@ permalink: /candyland/morningroutine
             if (currentRound >= gameData.length) {
                 
                 // KEEP YOUR SAVE SCORE LOGIC
-                // saveGameScore('morning_routine_score', score);
+                saveGameScore('morning_routine_score', score);
 
                 showGameOver(); // NEW: Show badges screen
                 return;
