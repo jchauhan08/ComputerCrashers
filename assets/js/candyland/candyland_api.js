@@ -1,73 +1,61 @@
-// File: static/js/candylandApi.js
-
 const BASE_URL = 'http://localhost:8587';
 
+// --- SCORES ---
 export async function saveGameScore(gameType, score) {
-    if (!gameType || score === undefined || score === null) {
-        console.error("Cannot save: Missing gameType or score.");
-        return;
-    }
-
+    if (!gameType || score === undefined || score === null) return;
     try {
-        const response = await fetch(`${BASE_URL}/api/candyland/save_score`, {
+        await fetch(`${BASE_URL}/api/candyland/save_score`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             credentials: 'include', 
+            body: JSON.stringify({ score_type: gameType, score_value: score })
+        });
+    } catch(e) { console.error("Error saving score:", e); }
+}
+
+export async function viewScores() {
+    try {
+        const response = await fetch(`${BASE_URL}/api/candyland/get_scores`, { method: 'GET', credentials: 'include' });
+        if (response.ok) {
+            const scores = await response.json();
+            if (scores.length === 0) { alert("No scores found yet!"); return; }
+            let message = "🏆 YOUR SCORES 🏆\n\n";
+            scores.forEach(item => { message += `${item.score_type}: ${item.score_value}\n`; });
+            alert(message);
+        }
+    } catch (e) { console.error("Error fetching scores:", e); }
+}
+
+// --- NEW: BADGES ---
+export async function saveBadge(badgeName, badgeIcon) {
+    try {
+        // We send the data exactly as your frontend generates it
+        const response = await fetch(`${BASE_URL}/api/candyland/save_badge`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            credentials: 'include',
             body: JSON.stringify({ 
-                score_type: gameType, 
-                score_value: score 
+                badge_name: badgeName, 
+                badge_icon: badgeIcon 
             })
         });
-
-        if (response.ok) {
-            console.log(`${gameType} score saved successfully!`);
-        } else {
-            console.warn("Save failed status:", response.status);
-        }
+        if (response.ok) console.log(`Badge saved: ${badgeName}`);
     } catch(e) {
-        console.error("Server error while saving score:", e);
+        console.error("Error saving badge:", e);
     }
 }
 
-// Function to fetch and alert scores
-export async function viewScores() {
+// Helper function to view all badges (can be used on a dashboard)
+export async function viewBadges() {
     try {
-        const response = await fetch('http://localhost:8587/api/candyland/get_scores', {
-            method: 'GET',
-            credentials: 'include' // Important!
-        });
-
+        const response = await fetch(`${BASE_URL}/api/candyland/get_badges`, { method: 'GET', credentials: 'include' });
         if (response.ok) {
-            const scores = await response.json();
+            const badges = await response.json();
+            if (badges.length === 0) { alert("No badges yet!"); return; }
             
-            if (scores.length === 0) {
-                alert("No scores found yet! Play some games first.");
-                return;
-            }
-
-            // Map internal names to nice display names
-            const displayNames = {
-                "morning_routine_score": "Morning Routine",
-                "maze_score": "Work Maze",
-                "whack_a_mole_score": "Whack-a-Bug",
-                "hot_chocolate_score": "Hot Chocolate Hangout",
-                "apple_launch_score": "Caramel Apple Launch"
-            };
-
-            // Format the output
-            let message = "🏆 YOUR SCORES 🏆\n\n";
-            scores.forEach(item => {
-                const niceName = displayNames[item.score_type] || item.score_type;
-                message += `${niceName}: ${item.score_value}\n`;
-            });
-
+            let message = "✨ YOUR BADGE COLLECTION ✨\n\n";
+            badges.forEach(b => { message += `${b.icon} ${b.name}\n`; });
             alert(message);
-        } else {
-            console.log("Error fetching scores:", response.status);
-            alert("Could not load scores.");
         }
-    } catch (e) {
-        console.error("Server error:", e);
-        alert("Server error while fetching scores.");
-    }
+    } catch(e) { console.error("Error fetching badges:", e); }
 }
