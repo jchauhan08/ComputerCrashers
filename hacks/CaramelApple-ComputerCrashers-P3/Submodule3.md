@@ -249,7 +249,7 @@ permalink: /candyland/whack-a-candy
     <div id="gameContainer">
         <h1>🍭 Whack-a-Candy 🍬</h1>
         <div class="stats">
-            <div id="score">Score: 0</div>
+            <div id="score">Score: 0</div> 
             <div id="timer">Time: 20</div>
         </div>
         <button id="startBtn">Start Game</button>
@@ -286,7 +286,7 @@ permalink: /candyland/whack-a-candy
         let misses = 0;
         let hits = 0;
 
-        // Create grid squares
+    
         for (let i = 0; i < 9; i++) {
             const square = document.createElement("div");
             square.classList.add("square");
@@ -299,7 +299,7 @@ permalink: /candyland/whack-a-candy
                     score++;
                     scoreDisplay.textContent = "Score: " + score;
                     removeBug();
-                    spawnBug(); // Spawn new bug immediately
+                    spawnBug(); 
                 }
             });
         }
@@ -343,7 +343,7 @@ permalink: /candyland/whack-a-candy
             randomSquare.textContent = "🍬";
             currentBug = randomSquare;
 
-            // Bug disappears after 1.5 seconds
+      
             bugTimeout = setTimeout(() => {
                 if (currentBug) {
                     misses++;
@@ -375,7 +375,7 @@ permalink: /candyland/whack-a-candy
         function showCompletionScreen() {
             const earnedBadges = [];
 
-            // Determine badges (adjusted for 20 seconds)
+            
             if (score >= 15) {
                 earnedBadges.push({ icon: '🏆', name: 'Bug Master' });
             }
@@ -402,7 +402,7 @@ permalink: /candyland/whack-a-candy
 
             saveGameScore('Whack-a-Candy Score:', score);
 
-            // Update completion screen
+            
             document.getElementById('finalScore').textContent = score;
             
             if (score >= 12) {
@@ -416,7 +416,7 @@ permalink: /candyland/whack-a-candy
                 document.getElementById('completionMessage').textContent = 'Keep practicing those reflexes!';
             }
 
-            // Display badges
+           
             const badgesDiv = document.getElementById('badgesEarned');
             badgesDiv.innerHTML = '';
             
@@ -437,7 +437,7 @@ permalink: /candyland/whack-a-candy
         }
 
         function nextModule() {
-            window.location.href = '/candyland/hotchocolate'; // Navigate to Submodule 4
+            window.location.href = '/candyland/hotchocolate'; 
         }
 
         startBtn.addEventListener("click", startGame);
