@@ -393,7 +393,7 @@ permalink: /candyland/workmaze
             <p style="font-size: 1.2em;">Time: <span id="finalTime"></span></p>
             <div id="badgesEarned"></div>
             
-            <button class="next-module" onclick="window.location.href='/candyland/whack-a-bug'">
+            <button class="next-module" onclick="window.location.href='/candyland/whack-a-candy'">
             Continue to Work Module →
             </button>
             <button onclick="resetGame()">🔄 Play Again</button>
