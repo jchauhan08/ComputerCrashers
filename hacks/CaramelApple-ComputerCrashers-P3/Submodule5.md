@@ -349,6 +349,9 @@ tags: [caramel, party, quest, finale]
             border-radius: 12px;
             text-align: center;
             transition: transform 0.2s;
+            /* Relative positioning needed for tooltip */
+            position: relative; 
+            cursor: help;
         }
 
         /* When a badge comes from the DB, we consider it 'earned' */
@@ -359,6 +362,7 @@ tags: [caramel, party, quest, finale]
 
         .badge-item:hover {
             transform: translateY(-3px);
+            z-index: 10;
         }
 
         .badge-icon {
@@ -381,6 +385,44 @@ tags: [caramel, party, quest, finale]
 
         .badge-item.earned .badge-name {
             color: #333;
+        }
+
+        /* --- Tooltip Styles for Usernames --- */
+        .badge-tooltip {
+            visibility: hidden;
+            background-color: rgba(0, 0, 0, 0.85);
+            color: #fff;
+            text-align: center;
+            padding: 8px 12px;
+            border-radius: 8px;
+            position: absolute;
+            z-index: 1001;
+            bottom: 110%; /* Place above the badge */
+            left: 50%;
+            transform: translateX(-50%);
+            width: max-content;
+            max-width: 220px;
+            font-size: 0.8rem;
+            opacity: 0;
+            transition: opacity 0.2s;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+            pointer-events: none;
+        }
+
+        .badge-tooltip::after {
+            content: " ";
+            position: absolute;
+            top: 100%; /* At the bottom of the tooltip */
+            left: 50%;
+            margin-left: -5px;
+            border-width: 5px;
+            border-style: solid;
+            border-color: rgba(0, 0, 0, 0.85) transparent transparent transparent;
+        }
+
+        .badge-item:hover .badge-tooltip {
+            visibility: visible;
+            opacity: 1;
         }
 
         /* Confetti */
@@ -484,7 +526,7 @@ tags: [caramel, party, quest, finale]
         <div class="modal-card" style="max-width: 600px;">
             <button class="close-btn" id="closeBadges">×</button>
             <h2>🏆 Achievements & Badges</h2>
-            <p>Earn badges by completing different parts of the quest!</p>
+            <p>Earn badges by completing different parts of the quest! Hover to see who earned them.</p>
             
             <div class="badges-grid" id="badgesGrid">
                 <!-- Badges will be loaded here from the database -->
@@ -495,7 +537,8 @@ tags: [caramel, party, quest, finale]
 
     <script type="module">
 
-        import { saveGameScore, viewScores , viewBadges} from '{{ '/assets/js/candyland/candyland_api.js' | relative_url }}';
+        // Imported the getBadgeUsernames function from your API file
+        import { saveGameScore, viewScores, viewBadges, getBadgeUsernames } from '{{ '/assets/js/candyland/candyland_api.js' | relative_url }}';
         window.viewScores = viewScores;
 
         const room = document.getElementById('partyRoom');
@@ -518,12 +561,12 @@ tags: [caramel, party, quest, finale]
         const usedObjects = new Set();
         let musicOn = false;
 
-        // --- NEW: FUNCTION TO FETCH AND DISPLAY BADGES ---
+        // --- FETCH AND DISPLAY BADGES ---
         async function fetchAndDisplayBadges() {
             badgesGrid.innerHTML = '<p style="grid-column: 1/-1; text-align: center;">Loading collection...</p>';
             
             try {
-                // Call your backend API
+                // Call your backend API to get badge types
                 const response = await fetch('http://localhost:8587/api/candyland/get_badges', {
                     method: 'GET',
                     credentials: 'include'
@@ -532,7 +575,7 @@ tags: [caramel, party, quest, finale]
                 if (response.ok) {
                     const badges = await response.json();
                     
-                    badgesGrid.innerHTML = ''; // Clear loading text
+                    badgesGrid.innerHTML = ''; 
                     
                     if (badges.length === 0) {
                         badgesGrid.innerHTML = `
@@ -544,16 +587,37 @@ tags: [caramel, party, quest, finale]
                         return;
                     }
 
-                    // Render each badge returned from the database
+                    // Render each badge
                     badges.forEach(badge => {
                         const badgeEl = document.createElement('div');
-                        // Add 'earned' class so it shows up in color
                         badgeEl.className = 'badge-item earned'; 
                         
+                        // Structure: Icon, Name, and an invisible Tooltip
                         badgeEl.innerHTML = `
                             <div class="badge-icon">${badge.icon}</div>
                             <div class="badge-name">${badge.name}</div>
+                            <div class="badge-tooltip">Loading winners...</div>
                         `;
+
+                        // Add Hover Listener to fetch specific users for this badge using API function
+                        badgeEl.addEventListener('mouseenter', async () => {
+                            // Prevent fetching if we already fetched for this session
+                            if (badgeEl.dataset.fetched === 'true') return;
+
+                            const tooltip = badgeEl.querySelector('.badge-tooltip');
+                            
+                            // Call the modular API function
+                            const winners = await getBadgeUsernames(badge.id); // Passing badge ID
+
+                            if (winners && winners.length > 0) {
+                                tooltip.innerHTML = `<strong>Earned by:</strong><br>${winners.join(', ')}`;
+                            } else {
+                                tooltip.innerHTML = "No winners yet";
+                            }
+                            
+                            badgeEl.dataset.fetched = 'true';
+                        });
+
                         badgesGrid.appendChild(badgeEl);
                     });
 

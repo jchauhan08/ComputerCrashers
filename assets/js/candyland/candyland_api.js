@@ -59,3 +59,31 @@ export async function viewBadges() {
         }
     } catch(e) { console.error("Error fetching badges:", e); }
 }
+
+// ... existing imports and code ...
+
+export async function getBadgeUsernames(badgeId) {
+    try {
+        // Adjust the URL if your backend endpoint is different
+        // Passing badge_id as a query parameter
+        const response = await fetch(`http://localhost:8587/api/candyland/badge_owners?badge_id=${badgeId}`, {
+            method: 'GET',
+            credentials: 'include',
+            headers: {
+                'Content-Type': 'application/json'
+            }
+        });
+
+        if (response.ok) {
+            // Returns an array of strings, e.g., ["Rishabh", "John"]
+            const usernames = await response.json();
+            return usernames;
+        } else {
+            console.error(`Failed to fetch owners for badge ${badgeId}`);
+            return [];
+        }
+    } catch (error) {
+        console.error("Error fetching badge owners:", error);
+        return [];
+    }
+}
