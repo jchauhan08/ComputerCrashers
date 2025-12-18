@@ -349,7 +349,6 @@ tags: [caramel, party, quest, finale]
             border-radius: 12px;
             text-align: center;
             transition: transform 0.2s;
-            /* Relative positioning needed for tooltip */
             position: relative; 
             cursor: help;
         }
@@ -537,7 +536,6 @@ tags: [caramel, party, quest, finale]
 
     <script type="module">
 
-        // Imported the getBadgeUsernames function from your API file
         import { saveGameScore, viewScores, viewBadges, getBadgeUsernames } from '{{ '/assets/js/candyland/candyland_api.js' | relative_url }}';
         window.viewScores = viewScores;
 
@@ -561,7 +559,7 @@ tags: [caramel, party, quest, finale]
         const usedObjects = new Set();
         let musicOn = false;
 
-        // --- FETCH AND DISPLAY BADGES ---
+        // --- UPDATED: FETCH BADGES AND PREFETCH WINNERS ---
         async function fetchAndDisplayBadges() {
             badgesGrid.innerHTML = '<p style="grid-column: 1/-1; text-align: center;">Loading collection...</p>';
             
@@ -587,7 +585,7 @@ tags: [caramel, party, quest, finale]
                         return;
                     }
 
-                    // Render each badge
+                    // Render each badge and IMMEDIATELY fetch its data
                     badges.forEach(badge => {
                         const badgeEl = document.createElement('div');
                         badgeEl.className = 'badge-item earned'; 
@@ -599,23 +597,18 @@ tags: [caramel, party, quest, finale]
                             <div class="badge-tooltip">Loading winners...</div>
                         `;
 
-                        // Add Hover Listener to fetch specific users for this badge using API function
-                        badgeEl.addEventListener('mouseenter', async () => {
-                            // Prevent fetching if we already fetched for this session
-                            if (badgeEl.dataset.fetched === 'true') return;
-
+                        // PREFETCH STRATEGY: 
+                        // Instead of waiting for hover, we call the API right now.
+                        // By the time the user hovers, the data will likely be there.
+                        getBadgeUsernames(badge.id).then(winners => {
                             const tooltip = badgeEl.querySelector('.badge-tooltip');
-                            
-                            // Call the modular API function
-                            const winners = await getBadgeUsernames(badge.id); // Passing badge ID
-
                             if (winners && winners.length > 0) {
                                 tooltip.innerHTML = `<strong>Earned by:</strong><br>${winners.join(', ')}`;
                             } else {
                                 tooltip.innerHTML = "No winners yet";
                             }
-                            
-                            badgeEl.dataset.fetched = 'true';
+                        }).catch(err => {
+                            console.error("Prefetch failed", err);
                         });
 
                         badgesGrid.appendChild(badgeEl);
