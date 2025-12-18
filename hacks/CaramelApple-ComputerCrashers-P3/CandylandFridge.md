@@ -129,7 +129,7 @@ permalink: /candyland/fridge
       <ul>
         <li><a href="/candyland/morningroutine">1) Complete morning routine </a></li>
         <li><a href="/candyland/workmaze">2) Go to work</a></li>
-        <li><a href="/candyland/whack-a-candy">3) Play whack-a-candy</a></li>
+        <li><a href="/candyland/whack-a-candy">3) Get rid of bad candies</a></li>
         <li><a href="/candyland/hotchocolate">4) Chill in a hot chocolate hot tub w/ friends </a></li>
         <li><a href="/candyland/ending">5) Launch party for Carmel Apple </a></li>
       </ul>
