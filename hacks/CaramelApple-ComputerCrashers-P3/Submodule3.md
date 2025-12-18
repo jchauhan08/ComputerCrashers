@@ -9,7 +9,7 @@ permalink: /candyland/whack-a-candy
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Whack-a-Bug</title>
+    <title>Whack-a-Candy</title>
     <style>
         * {
             margin: 0;
@@ -141,7 +141,135 @@ permalink: /candyland/whack-a-candy
             50% { transform: rotate(5deg); }
         }
 
-        /* Victory Screen */
+        /* Quiz Modal */
+        .quiz-modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.85);
+            z-index: 1500;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .quiz-modal.show {
+            display: flex;
+        }
+
+        .quiz-content {
+            background: #fff0fa;
+            padding: 40px;
+            border-radius: 25px;
+            border: 6px solid #ff69b4;
+            box-shadow: 0 0 50px rgba(255, 105, 180, 0.8);
+            max-width: 600px;
+            width: 90%;
+            animation: slideIn 0.5s ease;
+        }
+
+        .quiz-content h2 {
+            color: #ff69b4;
+            font-size: 2em;
+            margin-bottom: 20px;
+            text-shadow: 2px 2px #ffc6e9;
+        }
+
+        .quiz-question {
+            background: white;
+            padding: 20px;
+            border-radius: 15px;
+            border: 3px solid #ffb3e6;
+            margin-bottom: 20px;
+            font-size: 1.2em;
+            color: #333;
+            text-align: left;
+            line-height: 1.6;
+        }
+
+        .quiz-options {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            margin-bottom: 20px;
+        }
+
+        .quiz-option {
+            background: linear-gradient(to right, #ffe1f7, #ffd6f4);
+            border: 3px solid #ffb3e6;
+            padding: 15px 20px;
+            border-radius: 15px;
+            cursor: pointer;
+            font-size: 1.1em;
+            text-align: left;
+            transition: all 0.2s;
+            font-family: "Comic Sans MS", cursive;
+        }
+
+        .quiz-option:hover {
+            background: linear-gradient(to right, #ffd6f4, #ffb3e6);
+            transform: translateX(5px);
+        }
+
+        .quiz-option.correct {
+            background: linear-gradient(to right, #90EE90, #7FFF7F);
+            border-color: #32CD32;
+        }
+
+        .quiz-option.incorrect {
+            background: linear-gradient(to right, #ffb3b3, #ff8080);
+            border-color: #ff4d4d;
+        }
+
+        .quiz-option.disabled {
+            cursor: not-allowed;
+            opacity: 0.7;
+        }
+
+        .quiz-feedback {
+            background: white;
+            padding: 15px;
+            border-radius: 15px;
+            border: 3px solid #ffb3e6;
+            margin-bottom: 20px;
+            font-size: 1.1em;
+            color: #333;
+            font-weight: bold;
+        }
+
+        .quiz-feedback.correct {
+            background: #e8f5e9;
+            border-color: #32CD32;
+            color: #2e7d32;
+        }
+
+        .quiz-feedback.incorrect {
+            background: #fce4ec;
+            border-color: #ff4d4d;
+            color: #c62828;
+        }
+
+        .quiz-continue {
+            background: linear-gradient(to bottom, #90EE90, #32CD32);
+            color: white;
+            border: none;
+            padding: 15px 40px;
+            font-size: 1.2em;
+            border-radius: 20px;
+            cursor: pointer;
+            font-family: "Comic Sans MS", cursive;
+            font-weight: bold;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+            transition: all 0.2s;
+        }
+
+        .quiz-continue:hover {
+            transform: scale(1.05);
+        }
+
+        /* Completion Screen */
         .completion-screen {
             display: none;
             position: fixed;
@@ -208,39 +336,29 @@ permalink: /candyland/whack-a-candy
             margin: 20px 0;
         }
 
-        button.continue-btn {
+        button.continue-btn, button.retry-btn {
+            color: white;
+            border: none;
+            padding: 15px 40px;
+            font-size: 1.2em;
+            border-radius: 25px;
+            cursor: pointer;
+            margin: 10px;
+            font-family: 'Comic Sans MS', cursive;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+            font-weight: bold;
+            transition: all 0.2s;
+        }
+
+        .continue-btn {
             background: linear-gradient(to bottom, #90EE90, #32CD32);
-            color: white;
-            border: none;
-            padding: 15px 40px;
-            font-size: 1.2em;
-            border-radius: 25px;
-            cursor: pointer;
-            margin: 10px;
-            font-family: 'Comic Sans MS', cursive;
-            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
-            font-weight: bold;
         }
 
-        button.continue-btn:hover {
-            transform: scale(1.05);
-        }
-
-        button.retry-btn {
+        .retry-btn {
             background: linear-gradient(to bottom, #ff85c2, #ff5ca8);
-            color: white;
-            border: none;
-            padding: 15px 40px;
-            font-size: 1.2em;
-            border-radius: 25px;
-            cursor: pointer;
-            margin: 10px;
-            font-family: 'Comic Sans MS', cursive;
-            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
-            font-weight: bold;
         }
 
-        button.retry-btn:hover {
+        .continue-btn:hover, .retry-btn:hover {
             transform: scale(1.05);
         }
     </style>
@@ -256,6 +374,17 @@ permalink: /candyland/whack-a-candy
         <div id="grid"></div>
     </div>
 
+    <!-- Quiz Modal -->
+    <div class="quiz-modal" id="quizModal">
+        <div class="quiz-content">
+            <h2>🎓 College Board Question! 🎓</h2>
+            <div class="quiz-question" id="quizQuestion"></div>
+            <div class="quiz-options" id="quizOptions"></div>
+            <div class="quiz-feedback" id="quizFeedback" style="display: none;"></div>
+            <button class="quiz-continue" id="quizContinue" style="display: none;">Continue Game →</button>
+        </div>
+    </div>
+
     <!-- Completion Screen -->
     <div class="completion-screen" id="completionScreen">
         <div class="completion-content">
@@ -263,21 +392,90 @@ permalink: /candyland/whack-a-candy
             <div class="confetti">🍬 🍭 ✨ 🎊 🎈</div>
             <p id="completionMessage">Great job whacking those candy bugs!</p>
             <p style="font-size: 1.2em;">Final Score: <span id="finalScore">0</span></p>
+            <p style="font-size: 1.1em;">Quiz Score: <span id="quizScoreDisplay">0</span> / <span id="totalQuizzes">0</span></p>
             <div class="badges-earned" id="badgesEarned"></div>
             <button class="continue-btn" onclick="nextModule()">Continue to Next Module →</button>
             <button class="retry-btn" onclick="closeCompletion()">Play Again</button>
         </div>
     </div>
 
-    <script type="module">
-        // 1. IMPORT saveGameScore AND saveBadge
-        import { saveGameScore, viewScores, saveBadge } from '/assets/js/candyland/candyland_api.js';
-        
+    <script>
+        // College Board AP CSP Questions
+        const cbQuestions = [
+            {
+                question: "Which of the following best describes an algorithm?",
+                options: [
+                    "A) A set of instructions to solve a problem",
+                    "B) A programming language",
+                    "C) A type of computer hardware",
+                    "D) A way to store data"
+                ],
+                correct: 0,
+                explanation: "An algorithm is a finite set of instructions that accomplish a specific task."
+            },
+            {
+                question: "What is the purpose of an IP address?",
+                options: [
+                    "A) To identify a specific device on a network",
+                    "B) To store website information",
+                    "C) To encrypt data",
+                    "D) To increase internet speed"
+                ],
+                correct: 0,
+                explanation: "An IP address uniquely identifies each device connected to a network."
+            },
+            {
+                question: "Which programming construct is used to repeat a set of instructions?",
+                options: [
+                    "A) Selection",
+                    "B) Iteration",
+                    "C) Sequence",
+                    "D) Function"
+                ],
+                correct: 1,
+                explanation: "Iteration (loops) allows a program to repeat instructions multiple times."
+            },
+            {
+                question: "What does ASCII stand for?",
+                options: [
+                    "A) American Standard Code for Information Interchange",
+                    "B) Advanced System Computer Integration Interface",
+                    "C) Automated Secure Computer Information Index",
+                    "D) Application Software Code Integration Interface"
+                ],
+                correct: 0,
+                explanation: "ASCII is a character encoding standard for electronic communication."
+            },
+            {
+                question: "Which of the following is an example of abstraction in programming?",
+                options: [
+                    "A) Using a variable name instead of its value",
+                    "B) Writing code in lowercase",
+                    "C) Compiling a program",
+                    "D) Saving a file"
+                ],
+                correct: 0,
+                explanation: "Abstraction reduces complexity by hiding details and using simpler representations."
+            },
+            {
+                question: "What is the purpose of encryption?",
+                options: [
+                    "A) To protect data from unauthorized access",
+                    "B) To make programs run faster",
+                    "C) To reduce file size",
+                    "D) To display data on screen"
+                ],
+                correct: 0,
+                explanation: "Encryption converts data into a coded format to protect it from unauthorized access."
+            }
+        ];
+
         const grid = document.getElementById("grid");
         const scoreDisplay = document.getElementById("score");
         const timerDisplay = document.getElementById("timer");
         const startBtn = document.getElementById("startBtn");
         const completionScreen = document.getElementById("completionScreen");
+        const quizModal = document.getElementById("quizModal");
 
         let score = 0;
         let timeLeft = 20;
@@ -286,8 +484,12 @@ permalink: /candyland/whack-a-candy
         let currentBug = null;
         let misses = 0;
         let hits = 0;
+        let quizScore = 0;
+        let totalQuizzes = 0;
+        let gamePaused = false;
+        let askedQuestions = []; // Track which questions have been asked
 
-    
+        // Create grid squares
         for (let i = 0; i < 9; i++) {
             const square = document.createElement("div");
             square.classList.add("square");
@@ -295,12 +497,19 @@ permalink: /candyland/whack-a-candy
             grid.appendChild(square);
 
             square.addEventListener("click", () => {
-                if (square.classList.contains("bug")) {
+                if (square.classList.contains("bug") && !gamePaused) {
                     hits++;
                     score++;
                     scoreDisplay.textContent = "Score: " + score;
                     removeBug();
-                    spawnBug(); 
+                    
+                    // Check if we should show a quiz
+                    if (score % 5 === 0) {
+                        pauseGame();
+                        showQuiz();
+                    } else {
+                        spawnBug();
+                    }
                 }
             });
         }
@@ -310,6 +519,10 @@ permalink: /candyland/whack-a-candy
             timeLeft = 20;
             misses = 0;
             hits = 0;
+            quizScore = 0;
+            totalQuizzes = 0;
+            gamePaused = false;
+            askedQuestions = []; // Reset asked questions for new game
             scoreDisplay.textContent = "Score: 0";
             timerDisplay.textContent = "Time: 20";
             timerDisplay.classList.remove("warning");
@@ -317,23 +530,110 @@ permalink: /candyland/whack-a-candy
             startBtn.disabled = true;
 
             gameInterval = setInterval(() => {
-                timeLeft--;
-                timerDisplay.textContent = "Time: " + timeLeft;
+                if (!gamePaused) {
+                    timeLeft--;
+                    timerDisplay.textContent = "Time: " + timeLeft;
 
-                if (timeLeft <= 7) {
-                    timerDisplay.classList.add("warning");
-                }
+                    if (timeLeft <= 7) {
+                        timerDisplay.classList.add("warning");
+                    }
 
-                if (timeLeft <= 0) {
-                    endGame();
+                    if (timeLeft <= 0) {
+                        endGame();
+                    }
                 }
             }, 1000);
 
             spawnBug();
         }
 
+        function pauseGame() {
+            gamePaused = true;
+            removeBug();
+        }
+
+        function resumeGame() {
+            gamePaused = false;
+            if (timeLeft > 0) {
+                spawnBug();
+            }
+        }
+
+        function showQuiz() {
+            // Get available questions (not yet asked)
+            const availableQuestions = cbQuestions.filter((q, index) => !askedQuestions.includes(index));
+            
+            // If no questions left, skip quiz
+            if (availableQuestions.length === 0) {
+                resumeGame();
+                return;
+            }
+            
+            totalQuizzes++;
+            
+            // Pick a random question from available ones
+            const randomIndex = Math.floor(Math.random() * availableQuestions.length);
+            const randomQuestion = availableQuestions[randomIndex];
+            
+            // Find the original index and mark it as asked
+            const originalIndex = cbQuestions.indexOf(randomQuestion);
+            askedQuestions.push(originalIndex);
+            
+            document.getElementById('quizQuestion').textContent = randomQuestion.question;
+            
+            const optionsDiv = document.getElementById('quizOptions');
+            optionsDiv.innerHTML = '';
+            
+            randomQuestion.options.forEach((option, index) => {
+                const btn = document.createElement('div');
+                btn.className = 'quiz-option';
+                btn.textContent = option;
+                btn.onclick = () => handleQuizAnswer(index, randomQuestion.correct, randomQuestion.explanation);
+                optionsDiv.appendChild(btn);
+            });
+
+            document.getElementById('quizFeedback').style.display = 'none';
+            document.getElementById('quizContinue').style.display = 'none';
+            quizModal.classList.add('show');
+        }
+
+        function handleQuizAnswer(selected, correct, explanation) {
+            const options = document.querySelectorAll('.quiz-option');
+            const feedback = document.getElementById('quizFeedback');
+            
+            // Disable all options
+            options.forEach((opt, index) => {
+                opt.classList.add('disabled');
+                opt.onclick = null;
+                if (index === correct) {
+                    opt.classList.add('correct');
+                }
+                if (index === selected && index !== correct) {
+                    opt.classList.add('incorrect');
+                }
+            });
+
+            // Show feedback
+            if (selected === correct) {
+                quizScore++;
+                feedback.textContent = "✓ Correct! " + explanation;
+                feedback.className = 'quiz-feedback correct';
+            } else {
+                feedback.textContent = "✗ Incorrect. " + explanation;
+                feedback.className = 'quiz-feedback incorrect';
+            }
+            
+            feedback.style.display = 'block';
+            document.getElementById('quizContinue').style.display = 'block';
+        }
+
+        document.getElementById('quizContinue').addEventListener('click', () => {
+            quizModal.classList.remove('show');
+            resumeGame();
+        });
+
         function spawnBug() {
-            if (timeLeft <= 0) return;
+            if (timeLeft <= 0 || gamePaused) return;
             
             removeBug();
 
@@ -344,12 +644,11 @@ permalink: /candyland/whack-a-candy
             randomSquare.textContent = "🍬";
             currentBug = randomSquare;
 
-      
             bugTimeout = setTimeout(() => {
                 if (currentBug) {
                     misses++;
                     removeBug();
-                    if (timeLeft > 0) {
+                    if (timeLeft > 0 && !gamePaused) {
                         spawnBug();
                     }
                 }
@@ -376,36 +675,28 @@ permalink: /candyland/whack-a-candy
         function showCompletionScreen() {
             const earnedBadges = [];
 
-            
             if (score >= 15) {
                 earnedBadges.push({ icon: '🏆', name: 'Bug Master' });
             }
-
             if (score >= 12) {
                 earnedBadges.push({ icon: '⚡', name: 'Quick Reflexes' });
             }
-
             if (score >= 8) {
                 earnedBadges.push({ icon: '🎯', name: 'Good Shot' });
             }
-
             if (score < 4) {
                 earnedBadges.push({ icon: '🐌', name: 'Slow and Steady' });
             }
-
             if (misses <= 2) {
                 earnedBadges.push({ icon: '🎪', name: 'Eagle Eye' });
             }
-
-            if (score === 0) {
-                earnedBadges.push({ icon: '😅', name: 'Better Luck Next Time' });
+            if (quizScore === totalQuizzes && totalQuizzes > 0) {
+                earnedBadges.push({ icon: '🎓', name: 'Perfect Scholar' });
             }
 
-            // 2. SAVE SCORE TO BACKEND
-            saveGameScore('whack_a_mole_score', score);
-
-            
             document.getElementById('finalScore').textContent = score;
+            document.getElementById('quizScoreDisplay').textContent = quizScore;
+            document.getElementById('totalQuizzes').textContent = totalQuizzes;
             
             if (score >= 12) {
                 document.getElementById('completionTitle').textContent = '🎉 Amazing! 🎉';
@@ -418,33 +709,25 @@ permalink: /candyland/whack-a-candy
                 document.getElementById('completionMessage').textContent = 'Keep practicing those reflexes!';
             }
 
-            // Display badges
             const badgesDiv = document.getElementById('badgesEarned');
             badgesDiv.innerHTML = '';
             
-            if (earnedBadges.length > 0) {
-                earnedBadges.forEach(badge => {
-                    // --- 3. SAVE BADGE TO DB ---
-                    saveBadge(badge.name, badge.icon);
-                    // --------------------------
-
-                    const badgeEl = document.createElement('div');
-                    badgeEl.className = 'badge-earned';
-                    badgeEl.textContent = `${badge.icon} ${badge.name}`;
-                    badgesDiv.appendChild(badgeEl);
-                });
-            }
+            earnedBadges.forEach(badge => {
+                const badgeEl = document.createElement('div');
+                badgeEl.className = 'badge-earned';
+                badgeEl.textContent = `${badge.icon} ${badge.name}`;
+                badgesDiv.appendChild(badgeEl);
+            });
 
             completionScreen.classList.add('show');
         }
 
-        // Attach global functions to window so buttons can find them
         window.closeCompletion = function() {
             completionScreen.classList.remove('show');
         }
 
-        function nextModule() {
-            window.location.href = '/candyland/hotchocolate'; // Navigate to Submodule 4
+        window.nextModule = function() {
+            alert('Moving to next module! 🎉');
         }
 
         startBtn.addEventListener("click", startGame);
