@@ -335,6 +335,93 @@ permalink: /candyland/workmaze
             font-size: 1.3em;
             margin: 10px;
         }
+
+        .question-modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.85);
+            z-index: 2000;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .question-content {
+            background: white;
+            padding: 40px;
+            border-radius: 25px;
+            max-width: 600px;
+            width: 90%;
+            box-shadow: 0 0 40px rgba(255, 105, 180, 0.6);
+            border: 5px solid #FF69B4;
+        }
+
+        .question-content h3 {
+            color: #FF1493;
+            font-size: 1.8em;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+
+        .question-text {
+            font-size: 1.3em;
+            color: #333;
+            margin-bottom: 25px;
+            line-height: 1.5;
+        }
+
+        .option-button {
+            display: block;
+            width: 100%;
+            padding: 15px;
+            margin: 10px 0;
+            background: linear-gradient(to right, #E0BBE4, #957DAD);
+            border: 3px solid #957DAD;
+            border-radius: 15px;
+            font-size: 1.1em;
+            cursor: pointer;
+            transition: all 0.3s;
+            text-align: left;
+            color: white;
+            font-weight: bold;
+        }
+
+        .option-button:hover {
+            transform: translateX(10px);
+            box-shadow: 0 5px 15px rgba(149, 125, 173, 0.4);
+        }
+
+        .option-button.correct {
+            background: linear-gradient(to right, #90EE90, #32CD32);
+            border-color: #32CD32;
+        }
+
+        .option-button.incorrect {
+            background: linear-gradient(to right, #FF6B6B, #C23616);
+            border-color: #C23616;
+        }
+
+        .question-feedback {
+            margin-top: 20px;
+            padding: 15px;
+            border-radius: 10px;
+            font-size: 1.2em;
+            text-align: center;
+            font-weight: bold;
+        }
+
+        .question-feedback.correct {
+            background: #90EE90;
+            color: #0a5c0a;
+        }
+
+        .question-feedback.incorrect {
+            background: #FFB6B6;
+            color: #8B0000;
+        }
     </style>
 </head>
 <body>
@@ -411,6 +498,16 @@ permalink: /candyland/workmaze
         </div>
     </div>
 
+    <!-- Question Modal -->
+    <div class="question-modal" id="questionModal">
+        <div class="question-content">
+            <h3 id="questionTitle">🎓 Answer to Continue!</h3>
+            <div class="question-text" id="questionText"></div>
+            <div id="optionsContainer"></div>
+            <div class="question-feedback" id="questionFeedback" style="display: none;"></div>
+        </div>
+    </div>
+
     <script type="module">
         // 1. IMPORT THE API FUNCTIONS
         import { saveGameScore, viewScores, saveBadge } from '/assets/js/candyland/candyland_api.js';
@@ -430,10 +527,62 @@ permalink: /candyland/workmaze
         ];
 
         const checkpoints = {
-            2: { icon: '⛽', task: 'task1', name: 'Candy Gas Station', next: 3 },
-            3: { icon: '☕', task: 'task2', name: 'Coffee Bean Shop', next: 4 },
-            4: { icon: '👥', task: 'task3', name: 'Graham\'s House', next: 5 },
-            5: { icon: '🏢', task: 'task4', name: 'Caramel Apple HQ', next: null }
+            2: { 
+                icon: '⛽', 
+                task: 'task1', 
+                name: 'Candy Gas Station', 
+                next: 3,
+                question: 'A FOR loop executes 5 times, and inside it is another FOR loop that executes 10 times. How many total iterations occur?',
+                options: [
+                    '15 iterations',
+                    '50 iterations',
+                    '5 iterations',
+                    '10 iterations'
+                ],
+                correct: 1
+            },
+            3: { 
+                icon: '☕', 
+                task: 'task2', 
+                name: 'Coffee Bean Shop', 
+                next: 4,
+                question: 'What is the time complexity of a linear search through an unsorted list of n elements?',
+                options: [
+                    'O(1)',
+                    'O(log n)',
+                    'O(n)',
+                    'O(n²)'
+                ],
+                correct: 2
+            },
+            4: { 
+                icon: '👥', 
+                task: 'task3', 
+                name: 'Graham\'s House', 
+                next: 5,
+                question: 'Which statement best describes a WHILE loop?',
+                options: [
+                    'Executes a fixed number of times',
+                    'Repeats as long as a condition is true',
+                    'Always executes at least once',
+                    'Cannot be nested inside other loops'
+                ],
+                correct: 1
+            },
+            5: { 
+                icon: '🏢', 
+                task: 'task4', 
+                name: 'Caramel Apple HQ', 
+                next: null,
+                question: 'Binary search has a time complexity of O(log n). What does this mean?',
+                options: [
+                    'The algorithm runs in constant time',
+                    'Doubling the input size roughly doubles the runtime',
+                    'Doubling the input size adds only one more step',
+                    'The algorithm runs slower than linear search'
+                ],
+                correct: 2
+            }
         };
 
         let playerPos = { x: 0, y: 0 };
@@ -445,6 +594,8 @@ permalink: /candyland/workmaze
         let timerInterval = null;
         let wallHits = 0;
         let startTime = null;
+        let currentQuestionCheckpoint = null;
+        let timerPaused = false;
 
         function createMaze() {
             const mazeEl = document.getElementById('maze');
@@ -483,15 +634,17 @@ permalink: /candyland/workmaze
             startTime = Date.now();
             
             timerInterval = setInterval(() => {
-                timeRemaining--;
-                updateTimerDisplay();
-                
-                if (timeRemaining <= 10) {
-                    document.getElementById('timerDisplay').classList.add('warning');
-                }
-                
-                if (timeRemaining <= 0) {
-                    gameOver();
+                if (!timerPaused) {
+                    timeRemaining--;
+                    updateTimerDisplay();
+                    
+                    if (timeRemaining <= 10) {
+                        document.getElementById('timerDisplay').classList.add('warning');
+                    }
+                    
+                    if (timeRemaining <= 0) {
+                        gameOver();
+                    }
                 }
             }, 1000);
         }
@@ -559,31 +712,120 @@ permalink: /candyland/workmaze
             const cellValue = mazeLayout[playerPos.y][playerPos.x];
             
             if (cellValue >= 2 && cellValue <= 5) {
-                if (cellValue === currentCheckpoint) {
-                    collectedCheckpoints.add(cellValue);
-                    
-                    const checkpoint = checkpoints[cellValue];
-                    document.getElementById(checkpoint.task).classList.add('completed');
-                    
-                    const currentCell = document.getElementById(`cell-${playerPos.x}-${playerPos.y}`);
-                    currentCell.classList.add('collected');
-                    
-                    showMessage(`✓ ${checkpoint.name} Complete!`);
-                    
-                    if (checkpoint.next) {
-                        currentCheckpoint = checkpoint.next;
-                    } else {
-                        // Game complete!
-                        gameComplete = true;
-                        clearInterval(timerInterval);
-                        setTimeout(() => {
-                            showVictoryScreen();
-                        }, 1000);
-                    }
+                if (cellValue === currentCheckpoint && !collectedCheckpoints.has(cellValue)) {
+                    // Pause timer and show question
+                    timerPaused = true;
+                    currentQuestionCheckpoint = cellValue;
+                    showQuestion(cellValue);
                 } else if (cellValue > currentCheckpoint) {
                     showMessage(`⚠️ You need to complete tasks in order first!`);
                 }
             }
+        }
+
+        function showQuestion(checkpointValue) {
+            const checkpoint = checkpoints[checkpointValue];
+            const modal = document.getElementById('questionModal');
+            const questionText = document.getElementById('questionText');
+            const optionsContainer = document.getElementById('optionsContainer');
+            const feedback = document.getElementById('questionFeedback');
+            
+            questionText.textContent = checkpoint.question;
+            optionsContainer.innerHTML = '';
+            feedback.style.display = 'none';
+            
+            checkpoint.options.forEach((option, index) => {
+                const button = document.createElement('button');
+                button.className = 'option-button';
+                button.textContent = `${String.fromCharCode(65 + index)}. ${option}`;
+                button.onclick = () => checkAnswer(index, checkpoint.correct, button);
+                optionsContainer.appendChild(button);
+            });
+            
+            modal.style.display = 'flex';
+        }
+
+        function checkAnswer(selected, correct, button) {
+            const feedback = document.getElementById('questionFeedback');
+            const optionButtons = document.querySelectorAll('.option-button');
+            
+            // Disable all buttons
+            optionButtons.forEach(btn => btn.disabled = true);
+            
+            if (selected === correct) {
+                button.classList.add('correct');
+                feedback.className = 'question-feedback correct';
+                feedback.textContent = '✓ Correct! Great job! 🎉';
+                feedback.style.display = 'block';
+                
+                setTimeout(() => {
+                    completeCheckpoint();
+                    closeQuestion();
+                }, 1500);
+            } else {
+                button.classList.add('incorrect');
+                optionButtons[correct].classList.add('correct');
+                feedback.className = 'question-feedback incorrect';
+                feedback.textContent = '✗ Incorrect. The correct answer is highlighted. Try again!';
+                feedback.style.display = 'block';
+                
+                setTimeout(() => {
+                    // Move player back and reset
+                    movePlayerBack();
+                    closeQuestion();
+                }, 2500);
+            }
+        }
+
+        function completeCheckpoint() {
+            const checkpointValue = currentQuestionCheckpoint;
+            collectedCheckpoints.add(checkpointValue);
+            
+            const checkpoint = checkpoints[checkpointValue];
+            document.getElementById(checkpoint.task).classList.add('completed');
+            
+            const currentCell = document.getElementById(`cell-${playerPos.x}-${playerPos.y}`);
+            currentCell.classList.add('collected');
+            
+            showMessage(`✓ ${checkpoint.name} Complete!`);
+            
+            if (checkpoint.next) {
+                currentCheckpoint = checkpoint.next;
+            } else {
+                // Game complete!
+                gameComplete = true;
+                clearInterval(timerInterval);
+                setTimeout(() => {
+                    showVictoryScreen();
+                }, 1000);
+            }
+        }
+
+        function movePlayerBack() {
+            // Find a previous valid position
+            const visited = Array.from(visitedCells);
+            if (visited.length > 1) {
+                // Remove current position from visited
+                visitedCells.delete(`${playerPos.x}-${playerPos.y}`);
+                
+                // Get previous position
+                const prevPos = visited[visited.length - 2].split('-');
+                playerPos.x = parseInt(prevPos[0]);
+                playerPos.y = parseInt(prevPos[1]);
+                
+                // Clear the cell we tried to reach
+                const failedCell = document.getElementById(`cell-${parseInt(visited[visited.length - 1].split('-')[0])}-${parseInt(visited[visited.length - 1].split('-')[1])}`);
+                failedCell.classList.remove('visited');
+                
+                updatePlayerPosition();
+                showMessage('⚠️ Wrong answer! Try a different path.');
+            }
+        }
+
+        function closeQuestion() {
+            document.getElementById('questionModal').style.display = 'none';
+            timerPaused = false;
+            currentQuestionCheckpoint = null;
         }
 
         function showVictoryScreen() {
@@ -662,11 +904,14 @@ permalink: /candyland/workmaze
             gameComplete = false;
             timeRemaining = 30;
             wallHits = 0;
+            timerPaused = false;
+            currentQuestionCheckpoint = null;
             
             if (timerInterval) clearInterval(timerInterval);
             
             document.getElementById('victoryScreen').style.display = 'none';
             document.getElementById('gameOverScreen').style.display = 'none';
+            document.getElementById('questionModal').style.display = 'none';
             document.getElementById('timerDisplay').classList.remove('warning');
             
             document.querySelectorAll('.task-item').forEach(task => {
