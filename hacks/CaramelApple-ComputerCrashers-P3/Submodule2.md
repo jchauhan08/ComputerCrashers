@@ -246,6 +246,90 @@ permalink: /candyland/workmaze
             opacity: 0.6;
         }
 
+        /* --- Quiz Modal Styles --- */
+        .quiz-modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.85);
+            z-index: 1500;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .quiz-modal.show {
+            display: flex;
+        }
+
+        .quiz-content {
+            background: #f0faff;
+            padding: 35px;
+            border-radius: 25px;
+            border: 6px solid #87CEEB;
+            box-shadow: 0 0 50px rgba(135, 206, 235, 0.8);
+            max-width: 600px;
+            width: 90%;
+            animation: slideIn 0.5s ease;
+            text-align: center;
+        }
+
+        .quiz-content h2 {
+            color: #4682B4;
+            font-size: 1.8em;
+            margin-bottom: 20px;
+        }
+
+        .quiz-question {
+            background: white;
+            padding: 20px;
+            border-radius: 15px;
+            border: 3px solid #b0e0e6;
+            margin-bottom: 20px;
+            font-size: 1.1em;
+            color: #333;
+            text-align: left;
+        }
+
+        .quiz-options {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+
+        .quiz-option {
+            background: #fff;
+            border: 2px solid #87CEEB;
+            padding: 12px;
+            border-radius: 12px;
+            cursor: pointer;
+            transition: all 0.2s;
+            text-align: left;
+        }
+
+        .quiz-option:hover {
+            background: #e0f4ff;
+            transform: translateX(5px);
+        }
+
+        .quiz-option.correct { background: #90EE90; border-color: #32CD32; }
+        .quiz-option.incorrect { background: #ffb3b3; border-color: #ff4d4d; }
+        .quiz-option.disabled { cursor: not-allowed; opacity: 0.8; }
+
+        .quiz-feedback {
+            padding: 15px;
+            border-radius: 12px;
+            margin-bottom: 20px;
+            font-weight: bold;
+        }
+
+        .quiz-feedback.correct { background: #e8f5e9; color: #2e7d32; border: 2px solid #32CD32; }
+        .quiz-feedback.incorrect { background: #fce4ec; color: #c62828; border: 2px solid #ff4d4d; }
+
+        /* End Screens */
         .victory-screen, .game-over-screen {
             display: none;
             position: fixed;
@@ -268,77 +352,24 @@ permalink: /candyland/workmaze
             max-width: 500px;
         }
 
-        .victory-content {
-            border: 8px solid #FFD700;
+        .victory-content { border: 8px solid #FFD700; }
+        .game-over-content { border: 8px solid #FF6B6B; }
+
+        @keyframes slideIn {
+            from { transform: scale(0.5); opacity: 0; }
+            to { transform: scale(1); opacity: 1; }
         }
 
-        .game-over-content {
-            border: 8px solid #FF6B6B;
-        }
-
-        .victory-content h2, .game-over-content h2 {
-            font-size: 3em;
-            margin-bottom: 20px;
-            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.2);
-        }
-
-        .victory-content h2 {
-            color: #FF1493;
-        }
-
-        .game-over-content h2 {
-            color: #c23616;
-        }
-
-        .victory-content p, .game-over-content p {
-            font-size: 1.5em;
-            color: #333;
-            margin-bottom: 30px;
-        }
-
-        .badge-earned {
-            display: inline-block;
-            background: linear-gradient(135deg, #ffeaa7 0%, #fdcb6e 100%);
-            padding: 15px 25px;
-            border-radius: 15px;
-            margin: 10px;
-            font-size: 1.2em;
-            box-shadow: 0 4px 15px rgba(253, 203, 110, 0.4);
-        }
-
-        .confetti {
-            font-size: 2em;
-            margin: 20px 0;
-        }
-
-        button {
-            background: linear-gradient(to bottom, #FF69B4, #FF1493);
+        button.quiz-continue {
+            background: #32CD32;
             color: white;
-            border: none;
             padding: 12px 30px;
-            font-size: 1.1em;
-            border-radius: 25px;
-            cursor: pointer;
-            margin-top: 15px;
-            font-family: 'Comic Sans MS', cursive;
-            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
-        }
-
-        button:hover {
-            transform: scale(1.05);
-            box-shadow: 0 6px 15px rgba(0, 0, 0, 0.3);
-        }
-
-        button.next-module {
-            background: linear-gradient(to bottom, #90EE90, #32CD32);
-            padding: 15px 40px;
-            font-size: 1.3em;
-            margin: 10px;
+            border-radius: 20px;
+            font-weight: bold;
         }
     </style>
 </head>
 <body>
-    <!-- Decorations -->
     <div class="cloud cloud1"></div>
     <div class="cloud cloud2"></div>
     <div class="lollipop lollipop1">🍭</div>
@@ -383,6 +414,17 @@ permalink: /candyland/workmaze
         </div>
     </div>
 
+    <!-- Quiz Modal -->
+    <div class="quiz-modal" id="quizModal">
+        <div class="quiz-content">
+            <h2 id="quizTitle">🏁 Checkpoint Challenge! 🏁</h2>
+            <div class="quiz-question" id="quizQuestion"></div>
+            <div class="quiz-options" id="quizOptions"></div>
+            <div class="quiz-feedback" id="quizFeedback" style="display: none;"></div>
+            <button class="quiz-continue" id="quizContinue" style="display: none;">Continue Journey →</button>
+        </div>
+    </div>
+
     <!-- Victory Screen -->
     <div class="victory-screen" id="victoryScreen">
         <div class="victory-content">
@@ -403,19 +445,42 @@ permalink: /candyland/workmaze
     <div class="game-over-screen" id="gameOverScreen">
         <div class="game-over-content">
             <h2>⏰ Time's Up! ⏰</h2>
-            <div class="confetti">😅 🕐 ⏱️ 🍭</div>
             <p>You ran out of time getting to work!</p>
-            <p style="font-size: 1.2em;">Don't worry, try again!</p>
-            <div id="gameOverBadges"></div>
             <button onclick="resetGame()">🔄 Try Again</button>
         </div>
     </div>
 
     <script type="module">
-        // 1. IMPORT THE API FUNCTIONS
-        import { saveGameScore, viewScores, saveBadge } from '/assets/js/candyland/candyland_api.js';
+        import { saveGameScore, saveBadge } from '/assets/js/candyland/candyland_api.js';
 
-        // Maze layout: 0 = wall, 1 = path, 2 = gas, 3 = coffee, 4 = friend, 5 = work
+        // Specific Questions for each checkpoint
+        const checkpointQuestions = {
+            2: { // GAS STATION
+                question: "To fuel your car, you need data! Which of the following is a way to represent a single character in a computer?",
+                options: ["A) Using a logic gate", "B) Using ASCII or Unicode", "C) Using a compiler", "D) Using an IP address"],
+                correct: 1,
+                explanation: "ASCII and Unicode are standard encoding systems used to represent text characters in binary."
+            },
+            3: { // COFFEE SHOP
+                question: "Caffeine for logic! What is the primary purpose of an algorithm in computer science?",
+                options: ["A) To create hardware", "B) To increase physical RAM", "C) A step-by-step procedure to solve a problem", "D) To delete old files"],
+                correct: 2,
+                explanation: "An algorithm is a finite, ordered set of instructions designed to perform a specific task."
+            },
+            4: { // FRIEND GRAHAM
+                question: "Picking up a friend! In a network, what is the role of a Router?",
+                options: ["A) To store the user's password", "B) To direct data packets across networks", "C) To physically build the internet cable", "D) To encrypt hard drives"],
+                correct: 1,
+                explanation: "Routers manage traffic between networks by forwarding data packets to their intended IP addresses."
+            },
+            5: { // HQ
+                question: "Final Boss! Which of these is an example of 'High-Level' abstraction in programming?",
+                options: ["A) Writing binary code (0s and 1s)", "B) Using a simple function name like 'movePlayer()' to hide complex code", "C) Manually wiring a circuit board", "D) Viewing the voltage levels in a CPU"],
+                correct: 1,
+                explanation: "High-level abstraction hides complex implementation details, making it easier for humans to program."
+            }
+        };
+
         const mazeLayout = [
             [1, 1, 1, 0, 1, 1, 1, 0, 1, 1],
             [0, 0, 1, 0, 1, 0, 1, 0, 1, 0],
@@ -441,23 +506,20 @@ permalink: /candyland/workmaze
         let collectedCheckpoints = new Set();
         let visitedCells = new Set();
         let gameComplete = false;
+        let gamePaused = false;
         let timeRemaining = 30;
         let timerInterval = null;
         let wallHits = 0;
-        let startTime = null;
 
         function createMaze() {
             const mazeEl = document.getElementById('maze');
             mazeEl.innerHTML = '';
-            
             for (let y = 0; y < 10; y++) {
                 for (let x = 0; x < 10; x++) {
                     const cell = document.createElement('div');
                     cell.className = 'cell';
                     cell.id = `cell-${x}-${y}`;
-                    
                     const value = mazeLayout[y][x];
-                    
                     if (value === 0) {
                         cell.classList.add('wall');
                         cell.textContent = '🍫';
@@ -469,7 +531,6 @@ permalink: /candyland/workmaze
                             cell.textContent = checkpoints[value].icon;
                         }
                     }
-                    
                     mazeEl.appendChild(cell);
                 }
             }
@@ -480,18 +541,12 @@ permalink: /candyland/workmaze
 
         function startTimer() {
             if (timerInterval) clearInterval(timerInterval);
-            startTime = Date.now();
-            
             timerInterval = setInterval(() => {
-                timeRemaining--;
-                updateTimerDisplay();
-                
-                if (timeRemaining <= 10) {
-                    document.getElementById('timerDisplay').classList.add('warning');
-                }
-                
-                if (timeRemaining <= 0) {
-                    gameOver();
+                if (!gamePaused && !gameComplete) {
+                    timeRemaining--;
+                    updateTimerDisplay();
+                    if (timeRemaining <= 10) document.getElementById('timerDisplay').classList.add('warning');
+                    if (timeRemaining <= 0) gameOver();
                 }
             }, 1000);
         }
@@ -505,48 +560,24 @@ permalink: /candyland/workmaze
         }
 
         function updatePlayerPosition() {
-            document.querySelectorAll('.cell').forEach(cell => {
-                cell.classList.remove('player');
-            });
-            
+            document.querySelectorAll('.cell').forEach(cell => cell.classList.remove('player'));
             const currentCell = document.getElementById(`cell-${playerPos.x}-${playerPos.y}`);
             currentCell.classList.add('player');
             currentCell.textContent = '🙂';
         }
 
         function movePlayer(dx, dy) {
-            if (gameComplete) return;
-            
+            if (gameComplete || gamePaused) return;
             const newX = playerPos.x + dx;
             const newY = playerPos.y + dy;
             
-            // Check boundaries
-            if (newX < 0 || newX >= 10 || newY < 0 || newY >= 10) {
-                wallHits++;
-                updateWallCounter();
-                return;
-            }
+            if (newX < 0 || newX >= 10 || newY < 0 || newY >= 10) { wallHits++; updateWallCounter(); return; }
+            if (mazeLayout[newY][newX] === 0) { wallHits++; updateWallCounter(); showMessage("🍫 That's a wall!"); return; }
             
-            // Check if it's a wall
-            if (mazeLayout[newY][newX] === 0) {
-                wallHits++;
-                updateWallCounter();
-                showMessage("🍫 Oops! That's a chocolate wall!");
-                return;
-            }
-            
-            // Check if already visited
             const cellKey = `${newX}-${newY}`;
-            if (visitedCells.has(cellKey)) {
-                showMessage("⚠️ You can't go back! Find a new path!");
-                return;
-            }
+            if (visitedCells.has(cellKey)) { showMessage("⚠️ Can't go back!"); return; }
             
-            // Mark old position as visited
-            const oldCell = document.getElementById(`cell-${playerPos.x}-${playerPos.y}`);
-            oldCell.classList.add('visited');
-            
-            // Move player
+            document.getElementById(`cell-${playerPos.x}-${playerPos.y}`).classList.add('visited');
             playerPos.x = newX;
             playerPos.y = newY;
             visitedCells.add(cellKey);
@@ -557,65 +588,89 @@ permalink: /candyland/workmaze
 
         function checkCheckpoint() {
             const cellValue = mazeLayout[playerPos.y][playerPos.x];
-            
             if (cellValue >= 2 && cellValue <= 5) {
                 if (cellValue === currentCheckpoint) {
-                    collectedCheckpoints.add(cellValue);
-                    
-                    const checkpoint = checkpoints[cellValue];
-                    document.getElementById(checkpoint.task).classList.add('completed');
-                    
-                    const currentCell = document.getElementById(`cell-${playerPos.x}-${playerPos.y}`);
-                    currentCell.classList.add('collected');
-                    
-                    showMessage(`✓ ${checkpoint.name} Complete!`);
-                    
-                    if (checkpoint.next) {
-                        currentCheckpoint = checkpoint.next;
-                    } else {
-                        // Game complete!
-                        gameComplete = true;
-                        clearInterval(timerInterval);
-                        setTimeout(() => {
-                            showVictoryScreen();
-                        }, 1000);
-                    }
+                    triggerQuiz(cellValue);
                 } else if (cellValue > currentCheckpoint) {
-                    showMessage(`⚠️ You need to complete tasks in order first!`);
+                    showMessage(`⚠️ Go to ${checkpoints[currentCheckpoint].name} first!`);
                 }
             }
         }
 
-        function showVictoryScreen() {
-            const finalTimeEl = document.getElementById('finalTime');
-            const timeTaken = 30 - timeRemaining;
-            finalTimeEl.textContent = `${timeTaken} seconds`;
+        function triggerQuiz(checkpointId) {
+            gamePaused = true;
+            const qData = checkpointQuestions[checkpointId];
             
+            document.getElementById('quizQuestion').textContent = qData.question;
+            const optionsDiv = document.getElementById('quizOptions');
+            optionsDiv.innerHTML = '';
+            
+            qData.options.forEach((opt, idx) => {
+                const btn = document.createElement('div');
+                btn.className = 'quiz-option';
+                btn.textContent = opt;
+                btn.onclick = () => handleQuizAnswer(idx, qData.correct, qData.explanation, checkpointId);
+                optionsDiv.appendChild(btn);
+            });
+
+            document.getElementById('quizFeedback').style.display = 'none';
+            document.getElementById('quizContinue').style.display = 'none';
+            document.getElementById('quizModal').classList.add('show');
+        }
+
+        function handleQuizAnswer(selected, correct, explanation, checkpointId) {
+            const options = document.querySelectorAll('.quiz-option');
+            const feedback = document.getElementById('quizFeedback');
+            
+            options.forEach((opt, idx) => {
+                opt.classList.add('disabled');
+                opt.onclick = null;
+                if (idx === correct) opt.classList.add('correct');
+                if (idx === selected && idx !== correct) opt.classList.add('incorrect');
+            });
+
+            feedback.style.display = 'block';
+            feedback.className = (selected === correct) ? 'quiz-feedback correct' : 'quiz-feedback incorrect';
+            feedback.textContent = (selected === correct) ? "✓ Correct! " + explanation : "✗ Incorrect. " + explanation;
+            
+            document.getElementById('quizContinue').style.display = 'block';
+            document.getElementById('quizContinue').onclick = () => completeCheckpoint(checkpointId);
+        }
+
+        function completeCheckpoint(checkpointId) {
+            document.getElementById('quizModal').classList.remove('show');
+            gamePaused = false;
+
+            const checkpoint = checkpoints[checkpointId];
+            collectedCheckpoints.add(checkpointId);
+            document.getElementById(checkpoint.task).classList.add('completed');
+            document.getElementById(`cell-${playerPos.x}-${playerPos.y}`).classList.add('collected');
+            
+            showMessage(`✓ ${checkpoint.name} Complete!`);
+            
+            if (checkpoint.next) {
+                currentCheckpoint = checkpoint.next;
+            } else {
+                gameComplete = true;
+                clearInterval(timerInterval);
+                showVictoryScreen();
+            }
+        }
+
+        function showVictoryScreen() {
+            const timeTaken = 30 - timeRemaining;
+            document.getElementById('finalTime').textContent = `${timeTaken} seconds`;
             const badgesDiv = document.getElementById('badgesEarned');
             badgesDiv.innerHTML = '';
             
-            // 2. SAVE SCORE TO BACKEND
             saveGameScore('maze_score', timeTaken);
-
-            // 3. BADGE LOGIC & SAVING
-            
-            // Path Finder badge (always earned on completion)
             saveBadge('Path Finder', '🧭');
             badgesDiv.innerHTML += '<div class="badge-earned">🧭 Path Finder</div>';
             
-            // Speed badges
-            if (timeTaken <= 15) {
+            if (timeTaken <= 20) {
                 saveBadge('Speed Runner', '⚡');
                 badgesDiv.innerHTML += '<div class="badge-earned">⚡ Speed Runner</div>';
             }
-            
-            // Directionally Challenged badge (Win condition)
-            if (wallHits >= 5) {
-                saveBadge('Directionally Challenged', '🌀');
-                badgesDiv.innerHTML += '<div class="badge-earned">🌀 Directionally Challenged</div>';
-            }
-            
-            // Perfect Navigation badge
             if (wallHits === 0) {
                 saveBadge('Perfect Navigator', '🎯');
                 badgesDiv.innerHTML += '<div class="badge-earned">🎯 Perfect Navigator</div>';
@@ -627,31 +682,13 @@ permalink: /candyland/workmaze
         function gameOver() {
             gameComplete = true;
             clearInterval(timerInterval);
-            
-            const gameOverBadgesDiv = document.getElementById('gameOverBadges');
-            gameOverBadgesDiv.innerHTML = '';
-            
-            // Award Directionally Challenged badge if earned even on loss
-            if (wallHits >= 5) {
-                saveBadge('Directionally Challenged', '🌀');
-                gameOverBadgesDiv.innerHTML = '<div class="badge-earned">🌀 Directionally Challenged</div><p style="font-size: 1em;">At least you earned a badge! 😅</p>';
-            }
-            
             document.getElementById('gameOverScreen').style.display = 'flex';
-        }
-
-        function nextModule() {
-            alert('Moving to the Work Module! 🎉');
         }
 
         function showMessage(text) {
             const messageEl = document.getElementById('message');
             messageEl.textContent = text;
-            setTimeout(() => {
-                if (!gameComplete) {
-                    messageEl.textContent = '';
-                }
-            }, 2500);
+            setTimeout(() => { if (!gameComplete) messageEl.textContent = ''; }, 2500);
         }
 
         function resetGame() {
@@ -660,23 +697,17 @@ permalink: /candyland/workmaze
             collectedCheckpoints.clear();
             visitedCells.clear();
             gameComplete = false;
+            gamePaused = false;
             timeRemaining = 30;
             wallHits = 0;
-            
             if (timerInterval) clearInterval(timerInterval);
-            
             document.getElementById('victoryScreen').style.display = 'none';
             document.getElementById('gameOverScreen').style.display = 'none';
             document.getElementById('timerDisplay').classList.remove('warning');
-            
-            document.querySelectorAll('.task-item').forEach(task => {
-                task.classList.remove('completed');
-            });
-            
+            document.querySelectorAll('.task-item').forEach(t => t.classList.remove('completed'));
             updateTimerDisplay();
             updateWallCounter();
             createMaze();
-            showMessage('Start your journey! Head to the gas station first ⛽');
         }
 
         document.addEventListener('keydown', (e) => {
@@ -688,11 +719,8 @@ permalink: /candyland/workmaze
             }
         });
 
-        // Make resetGame globally available for the button onclicks
         window.resetGame = resetGame;
-
         createMaze();
-        showMessage('Welcome! Use arrow keys to navigate to the gas station first! ⛽');
     </script>
 </body>
 </html>
