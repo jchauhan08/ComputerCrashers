@@ -367,6 +367,89 @@ permalink: /candyland/workmaze
             border-radius: 20px;
             font-weight: bold;
         }
+
+        /* Friend Pop-up Modal */
+        .friend-modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.85);
+            z-index: 1400;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .friend-modal.show {
+            display: flex;
+        }
+
+        .friend-content {
+            background: linear-gradient(135deg, #FFB6C1 0%, #FFC0CB 100%);
+            padding: 40px;
+            border-radius: 30px;
+            border: 6px solid #FF69B4;
+            box-shadow: 0 0 50px rgba(255, 105, 180, 0.8);
+            max-width: 600px;
+            width: 90%;
+            animation: popIn 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
+            text-align: center;
+        }
+
+        @keyframes popIn {
+            0% { transform: scale(0) rotate(-10deg); opacity: 0; }
+            50% { transform: scale(1.1); }
+            100% { transform: scale(1) rotate(0deg); opacity: 1; }
+        }
+
+        .friend-content h2 {
+            color: #FF1493;
+            font-size: 2.2em;
+            margin-bottom: 15px;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        .friend-emoji {
+            font-size: 4em;
+            margin: 20px 0;
+            animation: bounce 0.6s infinite;
+        }
+
+        @keyframes bounce {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-20px); }
+        }
+
+        .friend-message {
+            background: white;
+            padding: 20px;
+            border-radius: 15px;
+            border: 3px solid #FFB6C1;
+            margin: 20px 0;
+            font-size: 1.2em;
+            color: #333;
+            line-height: 1.6;
+        }
+
+        .friend-button {
+            background: linear-gradient(135deg, #FF69B4 0%, #FF1493 100%);
+            color: white;
+            padding: 15px 40px;
+            border-radius: 25px;
+            font-weight: bold;
+            font-size: 1.1em;
+            border: none;
+            cursor: pointer;
+            transition: all 0.3s;
+            margin-top: 15px;
+        }
+
+        .friend-button:hover {
+            transform: scale(1.05);
+            box-shadow: 0 5px 20px rgba(255, 105, 180, 0.4);
+        }
     </style>
 </head>
 <body>
@@ -447,6 +530,18 @@ permalink: /candyland/workmaze
             <h2>⏰ Time's Up! ⏰</h2>
             <p>You ran out of time getting to work!</p>
             <button onclick="resetGame()">🔄 Try Again</button>
+        </div>
+    </div>
+
+    <!-- Friend Pop-up Modal -->
+    <div class="friend-modal" id="friendModal">
+        <div class="friend-content">
+            <h2>🎉 Friend Alert! 🎉</h2>
+            <div class="friend-emoji">👥</div>
+            <div class="friend-message" id="friendMessage">
+                You've found your friend Graham! Time to pick them up and head to work together!
+            </div>
+            <button class="friend-button" onclick="closeFriendModal()">Let's Go! →</button>
         </div>
     </div>
 
@@ -590,11 +685,27 @@ permalink: /candyland/workmaze
             const cellValue = mazeLayout[playerPos.y][playerPos.x];
             if (cellValue >= 2 && cellValue <= 5) {
                 if (cellValue === currentCheckpoint) {
-                    triggerQuiz(cellValue);
+                    // Show friend pop-up before quiz if it's checkpoint 4 (Graham's House)
+                    if (cellValue === 4) {
+                        showFriendModal();
+                    } else {
+                        triggerQuiz(cellValue);
+                    }
                 } else if (cellValue > currentCheckpoint) {
                     showMessage(`⚠️ Go to ${checkpoints[currentCheckpoint].name} first!`);
                 }
             }
+        }
+
+        function showFriendModal() {
+            gamePaused = true;
+            document.getElementById('friendModal').classList.add('show');
+        }
+
+        function closeFriendModal() {
+            document.getElementById('friendModal').classList.remove('show');
+            gamePaused = false;
+            triggerQuiz(4);
         }
 
         function triggerQuiz(checkpointId) {
@@ -720,6 +831,7 @@ permalink: /candyland/workmaze
         });
 
         window.resetGame = resetGame;
+        window.closeFriendModal = closeFriendModal;
         createMaze();
     </script>
 </body>
