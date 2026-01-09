@@ -329,6 +329,52 @@ permalink: /candyland/workmaze
         .quiz-feedback.correct { background: #e8f5e9; color: #2e7d32; border: 2px solid #32CD32; }
         .quiz-feedback.incorrect { background: #fce4ec; color: #c62828; border: 2px solid #ff4d4d; }
 
+        /* --- Gasoline Mini-Game Styles --- */
+        .npc-grid {
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 12px;
+            margin: 12px 0 18px;
+        }
+
+        @media (min-width: 520px) {
+            .npc-grid {
+                grid-template-columns: repeat(3, minmax(0, 1fr));
+            }
+        }
+
+        .npc-card {
+            background: #fff;
+            border: 2px solid #87CEEB;
+            border-radius: 12px;
+            padding: 14px;
+            cursor: pointer;
+            transition: all 0.2s;
+            text-align: center;
+            font-family: inherit;
+        }
+
+        .npc-card:hover {
+            background: #e0f4ff;
+            transform: translateY(-2px);
+        }
+
+        .npc-card.checked {
+            cursor: not-allowed;
+            opacity: 0.85;
+        }
+
+        .npc-emoji {
+            font-size: 2.2em;
+            display: block;
+            margin-bottom: 6px;
+        }
+
+        .npc-name {
+            font-weight: bold;
+            color: #333;
+        }
+
         /* End Screens */
         .victory-screen, .game-over-screen {
             display: none;
@@ -425,6 +471,27 @@ permalink: /candyland/workmaze
         </div>
     </div>
 
+    <!-- Gasoline Mini-Game Modal (Gas checkpoint) -->
+    <div class="quiz-modal" id="gasolineModal">
+        <div class="quiz-content">
+            <h2>⛽ Gasoline</h2>
+            <div class="quiz-question" id="gasolineInstructions">
+                Find the character who has gas. Click a character to interact.
+            </div>
+
+            <div class="npc-grid" id="gasolineNpcGrid"></div>
+
+            <div class="quiz-feedback" id="gasolineNpcFeedback" style="display: none;"></div>
+
+            <div id="gasolineMcqSection" style="display: none;">
+                <div class="quiz-question" id="gasolineQuestion"></div>
+                <div class="quiz-options" id="gasolineOptions"></div>
+                <div class="quiz-feedback" id="gasolineFeedback" style="display: none;"></div>
+                <button class="quiz-continue" id="gasolineContinue" style="display: none;">Return to Maze →</button>
+            </div>
+        </div>
+    </div>
+
     <!-- Victory Screen -->
     <div class="victory-screen" id="victoryScreen">
         <div class="victory-content">
@@ -511,6 +578,16 @@ permalink: /candyland/workmaze
         let timerInterval = null;
         let wallHits = 0;
 
+        const gasolineNpcs = [
+            { id: 'npc1', name: 'Mina', emoji: '🧑‍🔧' },
+            { id: 'npc2', name: 'Graham', emoji: '🧑‍💻' },
+            { id: 'npc3', name: 'Avery', emoji: '🧑‍🎓' },
+            { id: 'npc4', name: 'Sky', emoji: '🧑‍🍳' },
+            { id: 'npc5', name: 'River', emoji: '🧑‍🚀' }
+        ];
+
+        let gasolineState = null;
+
         function createMaze() {
             const mazeEl = document.getElementById('maze');
             mazeEl.innerHTML = '';
@@ -590,10 +667,145 @@ permalink: /candyland/workmaze
             const cellValue = mazeLayout[playerPos.y][playerPos.x];
             if (cellValue >= 2 && cellValue <= 5) {
                 if (cellValue === currentCheckpoint) {
-                    triggerQuiz(cellValue);
+                    if (cellValue === 2) {
+                        launchGasoline(cellValue);
+                    } else {
+                        triggerQuiz(cellValue);
+                    }
                 } else if (cellValue > currentCheckpoint) {
                     showMessage(`⚠️ Go to ${checkpoints[currentCheckpoint].name} first!`);
                 }
+            }
+        }
+
+        function launchGasoline(checkpointId) {
+            gamePaused = true;
+
+            gasolineState = {
+                checkpointId,
+                correctNpcIndex: Math.floor(Math.random() * gasolineNpcs.length),
+                checked: new Set(),
+                unlockedQuestion: false
+            };
+
+            renderGasolineNpcGrid();
+            resetGasolineFeedback();
+
+            const mcqSection = document.getElementById('gasolineMcqSection');
+            mcqSection.style.display = 'none';
+
+            document.getElementById('gasolineModal').classList.add('show');
+        }
+
+        function resetGasolineFeedback() {
+            const npcFeedback = document.getElementById('gasolineNpcFeedback');
+            npcFeedback.style.display = 'none';
+            npcFeedback.className = 'quiz-feedback';
+            npcFeedback.textContent = '';
+
+            const feedback = document.getElementById('gasolineFeedback');
+            feedback.style.display = 'none';
+            feedback.className = 'quiz-feedback';
+            feedback.textContent = '';
+
+            const continueBtn = document.getElementById('gasolineContinue');
+            continueBtn.style.display = 'none';
+            continueBtn.onclick = null;
+        }
+
+        function renderGasolineNpcGrid() {
+            const grid = document.getElementById('gasolineNpcGrid');
+            grid.innerHTML = '';
+
+            gasolineNpcs.forEach((npc, idx) => {
+                const btn = document.createElement('button');
+                btn.type = 'button';
+                btn.className = 'npc-card';
+                btn.setAttribute('aria-label', `Interact with ${npc.name}`);
+                btn.innerHTML = `<span class="npc-emoji">${npc.emoji}</span><div class="npc-name">${npc.name}</div>`;
+
+                if (gasolineState?.checked?.has(idx)) {
+                    btn.classList.add('checked');
+                    btn.disabled = true;
+                }
+
+                btn.onclick = () => handleGasolineNpcInteract(idx);
+                grid.appendChild(btn);
+            });
+        }
+
+        function handleGasolineNpcInteract(npcIndex) {
+            if (!gasolineState || gasolineState.unlockedQuestion) return;
+            if (gasolineState.checked.has(npcIndex)) return;
+
+            gasolineState.checked.add(npcIndex);
+            renderGasolineNpcGrid();
+
+            const npcFeedback = document.getElementById('gasolineNpcFeedback');
+            npcFeedback.style.display = 'block';
+
+            if (npcIndex === gasolineState.correctNpcIndex) {
+                gasolineState.unlockedQuestion = true;
+                npcFeedback.className = 'quiz-feedback correct';
+                npcFeedback.textContent = `✓ ${gasolineNpcs[npcIndex].name} has the gas! Answer the question to continue.`;
+
+                renderGasolineQuestion(gasolineState.checkpointId);
+                document.getElementById('gasolineMcqSection').style.display = 'block';
+            } else {
+                npcFeedback.className = 'quiz-feedback incorrect';
+                npcFeedback.textContent = `✗ ${gasolineNpcs[npcIndex].name} doesn't have gas. Try another character.`;
+            }
+        }
+
+        function renderGasolineQuestion(checkpointId) {
+            const qData = checkpointQuestions[checkpointId];
+            document.getElementById('gasolineQuestion').textContent = qData.question;
+
+            const optionsDiv = document.getElementById('gasolineOptions');
+            optionsDiv.innerHTML = '';
+
+            qData.options.forEach((opt, idx) => {
+                const btn = document.createElement('div');
+                btn.className = 'quiz-option';
+                btn.textContent = opt;
+                btn.onclick = () => handleGasolineAnswer(idx, qData.correct, qData.explanation, checkpointId);
+                optionsDiv.appendChild(btn);
+            });
+
+            const feedback = document.getElementById('gasolineFeedback');
+            feedback.style.display = 'none';
+
+            const continueBtn = document.getElementById('gasolineContinue');
+            continueBtn.style.display = 'none';
+            continueBtn.onclick = null;
+        }
+
+        function handleGasolineAnswer(selected, correct, explanation, checkpointId) {
+            const options = document.querySelectorAll('#gasolineOptions .quiz-option');
+            const feedback = document.getElementById('gasolineFeedback');
+
+            options.forEach((opt, idx) => {
+                opt.classList.add('disabled');
+                opt.onclick = null;
+                if (idx === correct) opt.classList.add('correct');
+                if (idx === selected && idx !== correct) opt.classList.add('incorrect');
+            });
+
+            feedback.style.display = 'block';
+            feedback.className = (selected === correct) ? 'quiz-feedback correct' : 'quiz-feedback incorrect';
+            feedback.textContent = (selected === correct) ? `✓ Correct! ${explanation}` : `✗ Incorrect. ${explanation}`;
+
+            if (selected === correct) {
+                const continueBtn = document.getElementById('gasolineContinue');
+                continueBtn.style.display = 'block';
+                continueBtn.onclick = () => completeCheckpoint(checkpointId);
+            } else {
+                // Allow retry by re-rendering question options
+                setTimeout(() => {
+                    if (!gameComplete && gasolineState?.unlockedQuestion) {
+                        renderGasolineQuestion(checkpointId);
+                    }
+                }, 700);
             }
         }
 
@@ -639,6 +851,7 @@ permalink: /candyland/workmaze
 
         function completeCheckpoint(checkpointId) {
             document.getElementById('quizModal').classList.remove('show');
+            document.getElementById('gasolineModal').classList.remove('show');
             gamePaused = false;
 
             const checkpoint = checkpoints[checkpointId];
@@ -703,6 +916,8 @@ permalink: /candyland/workmaze
             if (timerInterval) clearInterval(timerInterval);
             document.getElementById('victoryScreen').style.display = 'none';
             document.getElementById('gameOverScreen').style.display = 'none';
+            document.getElementById('quizModal').classList.remove('show');
+            document.getElementById('gasolineModal').classList.remove('show');
             document.getElementById('timerDisplay').classList.remove('warning');
             document.querySelectorAll('.task-item').forEach(t => t.classList.remove('completed'));
             updateTimerDisplay();
