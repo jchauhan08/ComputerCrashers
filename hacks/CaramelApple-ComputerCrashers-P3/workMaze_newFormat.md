@@ -2,7 +2,7 @@
 layout: base
 title: Candyland Maze Adventure
 authors: Jaynee Chauhan
-permalink: /candyland/workmaze
+permalink: /candyland/gamifymaze
 ---
 <!DOCTYPE html>
 <html lang="en">
