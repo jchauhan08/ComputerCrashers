@@ -536,7 +536,8 @@ tags: [caramel, party, quest, finale]
 
     <script type="module">
 
-        import { saveGameScore, viewScores, viewBadges, getBadgeUsernames, triggerMockDataInjection } from '{{ '/assets/js/candyland/candyland_api.js' | relative_url }}';
+        // ADDED triggerClearData TO IMPORTS
+        import { saveGameScore, viewScores, viewBadges, getBadgeUsernames, triggerMockDataInjection, triggerClearData } from '{{ '/assets/js/candyland/candyland_api.js' | relative_url }}';
         window.viewScores = viewScores;
 
         const room = document.getElementById('partyRoom');
@@ -788,14 +789,30 @@ tags: [caramel, party, quest, finale]
             }
         });
 
-        // --- NEW: SECRET INJECTION KEYSTROKE (SHIFT + ALT + I) ---
+        // --- NEW: SECRET ADMIN KEYSTROKES ---
         window.addEventListener('keydown', async (e) => {
-            if (e.shiftKey && e.altKey && e.key.toLowerCase() === 'i') {
-                const confirmed = confirm("ADMIN: Inject mock users for rarity calculation?");
-                if (confirmed) {
-                    await triggerMockDataInjection();
-                    if (badgesOverlay.classList.contains('show')) {
-                        fetchAndDisplayBadges(); 
+            if (e.shiftKey && e.altKey) {
+                const key = e.key.toLowerCase();
+                
+                // SHIFT + ALT + I (Inject Data)
+                if (key === 'i') {
+                    const confirmed = confirm("ADMIN: Inject mock users for rarity calculation?");
+                    if (confirmed) {
+                        await triggerMockDataInjection();
+                        if (badgesOverlay.classList.contains('show')) {
+                            fetchAndDisplayBadges(); 
+                        }
+                    }
+                }
+                
+                // SHIFT + ALT + C (Clear Data)
+                else if (key === 'c') {
+                    const confirmed = confirm("ADMIN: Clear all mock data and reset rarity statistics?");
+                    if (confirmed) {
+                        await triggerClearData();
+                        if (badgesOverlay.classList.contains('show')) {
+                            fetchAndDisplayBadges(); 
+                        }
                     }
                 }
             }
@@ -804,4 +821,4 @@ tags: [caramel, party, quest, finale]
         updateProgress();
     </script>
 </body>
-</html>
+</html> 

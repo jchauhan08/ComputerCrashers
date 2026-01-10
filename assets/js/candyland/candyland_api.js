@@ -144,3 +144,19 @@ export async function triggerMockDataInjection() {
         console.error("Error injecting mock data:", e);
     }
 }
+
+export async function triggerClearData() {
+    try {
+        const response = await fetch(`${BASE_URL}/api/candyland/admin/clear_data`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            credentials: 'include'
+        });
+        if (response.ok) {
+            const data = await response.json();
+            alert(data.message);
+        }
+    } catch (e) {
+        console.error("Error clearing data:", e);
+    }
+}
