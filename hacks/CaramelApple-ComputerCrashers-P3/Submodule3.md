@@ -36,6 +36,22 @@ permalink: /candyland/whack-a-candy
             width: 450px;
             max-width: 100%;
             box-shadow: 0 10px 40px rgba(255, 105, 180, 0.3);
+            position: relative;
+            overflow: hidden;
+            min-height: 500px;
+        }
+
+        /* --- START SCREEN OVERLAY --- */
+        #start-screen {
+            position: absolute;
+            inset: 0;
+            background: #fff0fa;
+            z-index: 100;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
         }
 
         h1 {
@@ -73,7 +89,7 @@ permalink: /candyland/whack-a-candy
             50% { transform: scale(1.05); }
         }
 
-        #startBtn {
+        #startBtn, .start-game-btn {
             margin: 20px 0;
             padding: 15px 35px;
             font-size: 1.3em;
@@ -88,18 +104,13 @@ permalink: /candyland/whack-a-candy
             transition: all 0.1s;
         }
 
-        #startBtn:hover:not(:disabled) {
+        #startBtn:hover:not(:disabled), .start-game-btn:hover {
             background: linear-gradient(to bottom, #ff6bb5, #ff4d9c);
         }
 
-        #startBtn:active {
+        #startBtn:active, .start-game-btn:active {
             box-shadow: 0 2px #ff3d93;
             transform: translateY(4px);
-        }
-
-        #startBtn:disabled {
-            opacity: 0.6;
-            cursor: not-allowed;
         }
 
         #grid {
@@ -295,6 +306,7 @@ permalink: /candyland/whack-a-candy
             border: 8px solid #ff69b4;
             box-shadow: 0 0 50px rgba(255, 105, 180, 0.8);
             max-width: 500px;
+            width: 90%;
             animation: slideIn 0.5s ease;
         }
 
@@ -365,12 +377,19 @@ permalink: /candyland/whack-a-candy
 </head>
 <body>
     <div id="gameContainer">
+        <!-- START SCREEN OVERLAY (PHASE 1) -->
+        <div id="start-screen">
+            <h1>🍭 Whack-a-Candy 🍬</h1>
+            <p style="margin-bottom: 20px; font-weight: bold; color: #ff5ca8;">Catch the bugs to earn sweet rewards!</p>
+            <button class="start-game-btn" id="realStartBtn">Start Quest</button>
+        </div>
+
         <h1>🍭 Whack-a-Candy 🍬</h1>
         <div class="stats">
             <div id="score">Score: 0</div> 
             <div id="timer">Time: 20</div>
         </div>
-        <button id="startBtn">Start Game</button>
+        <button id="startBtn" style="display: none;">Start Game</button> <!-- Original button hidden -->
         <div id="grid"></div>
     </div>
 
@@ -399,7 +418,10 @@ permalink: /candyland/whack-a-candy
         </div>
     </div>
 
-    <script>
+    <script type="module">
+        // Import the API logic
+        import { saveGameScore, saveBadge } from '/assets/js/candyland/candyland_api.js';
+
         // College Board AP CSP Questions
         const cbQuestions = [
             {
@@ -473,7 +495,8 @@ permalink: /candyland/whack-a-candy
         const grid = document.getElementById("grid");
         const scoreDisplay = document.getElementById("score");
         const timerDisplay = document.getElementById("timer");
-        const startBtn = document.getElementById("startBtn");
+        const realStartBtn = document.getElementById("realStartBtn");
+        const startScreen = document.getElementById("start-screen");
         const completionScreen = document.getElementById("completionScreen");
         const quizModal = document.getElementById("quizModal");
 
@@ -487,7 +510,7 @@ permalink: /candyland/whack-a-candy
         let quizScore = 0;
         let totalQuizzes = 0;
         let gamePaused = false;
-        let askedQuestions = []; // Track which questions have been asked
+        let askedQuestions = []; 
 
         // Create grid squares
         for (let i = 0; i < 9; i++) {
@@ -503,7 +526,6 @@ permalink: /candyland/whack-a-candy
                     scoreDisplay.textContent = "Score: " + score;
                     removeBug();
                     
-                    // Check if we should show a quiz
                     if (score % 5 === 0) {
                         pauseGame();
                         showQuiz();
@@ -514,6 +536,37 @@ permalink: /candyland/whack-a-candy
             });
         }
 
+        // --- NEW: PHASE 1 START LOGIC ---
+        realStartBtn.addEventListener('click', async () => {
+            startScreen.style.display = 'none';
+
+            // List of all 6 badges potentially earnable in this game
+            const possibleBadges = [
+                'Bug Master', 
+                'Quick Reflexes', 
+                'Good Shot', 
+                'Slow and Steady', 
+                'Eagle Eye', 
+                'Perfect Scholar'
+            ];
+
+            // Log attempt in JinjaAdmin Table for accurate rarity denominator
+            try {
+                await Promise.all(possibleBadges.map(badgeName => 
+                    fetch('http://localhost:8587/api/candyland/increment_attempts', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ game_id: badgeName })
+                    })
+                ));
+                console.log("Global attempts logged for rarity denominator.");
+            } catch (e) {
+                console.error("Failed to log attempts in JinjaAdmin:", e);
+            }
+
+            startGame(); // Start the game logic
+        });
+
         function startGame() {
             score = 0;
             timeLeft = 20;
@@ -522,12 +575,10 @@ permalink: /candyland/whack-a-candy
             quizScore = 0;
             totalQuizzes = 0;
             gamePaused = false;
-            askedQuestions = []; // Reset asked questions for new game
+            askedQuestions = []; 
             scoreDisplay.textContent = "Score: 0";
             timerDisplay.textContent = "Time: 20";
             timerDisplay.classList.remove("warning");
-
-            startBtn.disabled = true;
 
             gameInterval = setInterval(() => {
                 if (!gamePaused) {
@@ -560,27 +611,18 @@ permalink: /candyland/whack-a-candy
         }
 
         function showQuiz() {
-            // Get available questions (not yet asked)
             const availableQuestions = cbQuestions.filter((q, index) => !askedQuestions.includes(index));
-            
-            // If no questions left, skip quiz
             if (availableQuestions.length === 0) {
                 resumeGame();
                 return;
             }
-            
             totalQuizzes++;
-            
-            // Pick a random question from available ones
             const randomIndex = Math.floor(Math.random() * availableQuestions.length);
             const randomQuestion = availableQuestions[randomIndex];
-            
-            // Find the original index and mark it as asked
             const originalIndex = cbQuestions.indexOf(randomQuestion);
             askedQuestions.push(originalIndex);
             
             document.getElementById('quizQuestion').textContent = randomQuestion.question;
-            
             const optionsDiv = document.getElementById('quizOptions');
             optionsDiv.innerHTML = '';
             
@@ -600,20 +642,13 @@ permalink: /candyland/whack-a-candy
         function handleQuizAnswer(selected, correct, explanation) {
             const options = document.querySelectorAll('.quiz-option');
             const feedback = document.getElementById('quizFeedback');
-            
-            // Disable all options
             options.forEach((opt, index) => {
                 opt.classList.add('disabled');
                 opt.onclick = null;
-                if (index === correct) {
-                    opt.classList.add('correct');
-                }
-                if (index === selected && index !== correct) {
-                    opt.classList.add('incorrect');
-                }
+                if (index === correct) opt.classList.add('correct');
+                if (index === selected && index !== correct) opt.classList.add('incorrect');
             });
 
-            // Show feedback
             if (selected === correct) {
                 quizScore++;
                 feedback.textContent = "✓ Correct! " + explanation;
@@ -622,7 +657,6 @@ permalink: /candyland/whack-a-candy
                 feedback.textContent = "✗ Incorrect. " + explanation;
                 feedback.className = 'quiz-feedback incorrect';
             }
-            
             feedback.style.display = 'block';
             document.getElementById('quizContinue').style.display = 'block';
         }
@@ -634,12 +668,9 @@ permalink: /candyland/whack-a-candy
 
         function spawnBug() {
             if (timeLeft <= 0 || gamePaused) return;
-            
             removeBug();
-
             const squares = document.querySelectorAll(".square");
             const randomSquare = squares[Math.floor(Math.random() * squares.length)];
-
             randomSquare.classList.add("bug");
             randomSquare.textContent = "🍬";
             currentBug = randomSquare;
@@ -648,9 +679,7 @@ permalink: /candyland/whack-a-candy
                 if (currentBug) {
                     misses++;
                     removeBug();
-                    if (timeLeft > 0 && !gamePaused) {
-                        spawnBug();
-                    }
+                    if (timeLeft > 0 && !gamePaused) spawnBug();
                 }
             }, 1500);
         }
@@ -667,52 +696,35 @@ permalink: /candyland/whack-a-candy
         function endGame() {
             clearInterval(gameInterval);
             removeBug();
-            startBtn.disabled = false;
             timerDisplay.classList.remove("warning");
+            
+            // Save final game score to DB
+            saveGameScore('whack_a_candy_score', score);
+            
             showCompletionScreen();
         }
 
         function showCompletionScreen() {
             const earnedBadges = [];
 
-            if (score >= 15) {
-                earnedBadges.push({ icon: '🏆', name: 'Bug Master' });
-            }
-            if (score >= 12) {
-                earnedBadges.push({ icon: '⚡', name: 'Quick Reflexes' });
-            }
-            if (score >= 8) {
-                earnedBadges.push({ icon: '🎯', name: 'Good Shot' });
-            }
-            if (score < 4) {
-                earnedBadges.push({ icon: '🐌', name: 'Slow and Steady' });
-            }
-            if (misses <= 2) {
-                earnedBadges.push({ icon: '🎪', name: 'Eagle Eye' });
-            }
-            if (quizScore === totalQuizzes && totalQuizzes > 0) {
-                earnedBadges.push({ icon: '🎓', name: 'Perfect Scholar' });
-            }
+            if (score >= 15) earnedBadges.push({ icon: '🏆', name: 'Bug Master' });
+            if (score >= 12) earnedBadges.push({ icon: '⚡', name: 'Quick Reflexes' });
+            if (score >= 8) earnedBadges.push({ icon: '🎯', name: 'Good Shot' });
+            if (score < 4) earnedBadges.push({ icon: '🐌', name: 'Slow and Steady' });
+            if (misses <= 2) earnedBadges.push({ icon: '👁️', name: 'Eagle Eye' });
+            if (quizScore === totalQuizzes && totalQuizzes > 0) earnedBadges.push({ icon: '🎓', name: 'Perfect Scholar' });
 
             document.getElementById('finalScore').textContent = score;
             document.getElementById('quizScoreDisplay').textContent = quizScore;
             document.getElementById('totalQuizzes').textContent = totalQuizzes;
             
-            if (score >= 12) {
-                document.getElementById('completionTitle').textContent = '🎉 Amazing! 🎉';
-                document.getElementById('completionMessage').textContent = 'You\'re a candy-catching champion!';
-            } else if (score >= 8) {
-                document.getElementById('completionTitle').textContent = '😊 Good Job! 😊';
-                document.getElementById('completionMessage').textContent = 'Nice work whacking those candy bugs!';
-            } else {
-                document.getElementById('completionTitle').textContent = '🍬 Time\'s Up! 🍬';
-                document.getElementById('completionMessage').textContent = 'Keep practicing those reflexes!';
-            }
-
             const badgesDiv = document.getElementById('badgesEarned');
             badgesDiv.innerHTML = '';
             
             earnedBadges.forEach(badge => {
+                // Save each earned badge to DB
+                saveBadge(badge.name, badge.icon);
+                
                 const badgeEl = document.createElement('div');
                 badgeEl.className = 'badge-earned';
                 badgeEl.textContent = `${badge.icon} ${badge.name}`;
@@ -724,13 +736,12 @@ permalink: /candyland/whack-a-candy
 
         window.closeCompletion = function() {
             completionScreen.classList.remove('show');
+            startScreen.style.display = 'flex'; // Reset to start screen
         }
 
         window.nextModule = function() {
-            alert('Moving to next module! 🎉');
+            window.location.href = '/candyland/ending'; // Adjust to your actual next path
         }
-
-        startBtn.addEventListener("click", startGame);
     </script>
 </body>
 </html>
