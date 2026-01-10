@@ -30,6 +30,40 @@ permalink: /candyland/hotchocolate
             overflow: hidden;
         }
 
+        /* --- START SCREEN OVERLAY (PHASE 1) --- */
+        #start-screen {
+            position: absolute;
+            inset: 0;
+            background: #FFF8DC;
+            z-index: 100;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            border-radius: 30px;
+            padding: 20px;
+            text-align: center;
+        }
+
+        .start-btn {
+            background: linear-gradient(to bottom, #90EE90, #32CD32);
+            color: white;
+            border: none;
+            padding: 20px 40px;
+            font-size: 1.5rem;
+            font-family: 'Comic Sans MS', cursive;
+            border-radius: 15px;
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s;
+            box-shadow: 0 4px 15px rgba(50, 205, 50, 0.4);
+            font-weight: bold;
+        }
+
+        .start-btn:hover {
+            transform: scale(1.05);
+            box-shadow: 0 6px 20px rgba(50, 205, 50, 0.6);
+        }
+
         /* Steam animation */
         .steam {
             position: absolute;
@@ -76,6 +110,7 @@ permalink: /candyland/hotchocolate
             z-index: 10;
             max-width: 700px;
             width: 100%;
+            min-height: 550px;
         }
 
         h1 {
@@ -364,6 +399,13 @@ permalink: /candyland/hotchocolate
     <div class="marshmallow marsh4">🤍</div>
 
     <div class="game-container">
+        <!-- START SCREEN OVERLAY (PHASE 1) -->
+        <div id="start-screen">
+            <h1>☕ Hot Chocolate Tub 🍫</h1>
+            <p style="margin-bottom: 30px; font-weight: bold; color: #8B4513;">Relax in the tub and chat with Joe Licorice!</p>
+            <button class="start-btn" id="realStartBtn">Start Chilling</button>
+        </div>
+
         <h1>☕ Hot Chocolate Tub 🍫</h1>
         <p class="subtitle">Chilling with Friends</p>
 
@@ -416,11 +458,9 @@ permalink: /candyland/hotchocolate
     </div>
 
     <script type="module">
-        // 1. IMPORT saveGameScore AND saveBadge
-        import { saveGameScore, viewScores, saveBadge } from '/assets/js/candyland/candyland_api.js';
+        import { saveGameScore, saveBadge } from '/assets/js/candyland/candyland_api.js';
 
         (function(){
-            // Values: good = 1, neutral = 0, bad = -1
             const interactions = [
                 {
                     prompt: "Hi Gingerbrella! Did you bring the marshmallows? I'm really looking forward to roasting them!",
@@ -457,12 +497,16 @@ permalink: /candyland/hotchocolate
             ];
 
             const maxScore = interactions.length * 1;
-            const passThreshold = 2; // passing score (2+)
+            const passThreshold = 2; 
             let index = 0;
             let score = 0;
             let answered = false;
             let earnedBadges = [];
+            let perfectChoices = 0; 
+            let badChoices = 0; 
 
+            const realStartBtn = document.getElementById('realStartBtn');
+            const startScreen = document.getElementById('start-screen');
             const promptEl = document.getElementById('prompt');
             const optionsEl = document.getElementById('options');
             const resultEl = document.getElementById('choice-result');
@@ -472,9 +516,34 @@ permalink: /candyland/hotchocolate
             const scoreEl = document.getElementById('score');
             const completionScreen = document.getElementById('completionScreen');
 
-            // Badge tracking
-            let perfectChoices = 0; // Track perfect (value = 1) choices
-            let badChoices = 0; // Track bad (value = -1) choices
+            // --- PHASE 1: START BUTTON HANDLER ---
+            realStartBtn.addEventListener('click', async () => {
+                startScreen.style.display = 'none';
+
+                // Log an attempt for all 5 social badges
+                const possibleBadges = [
+                    'Social Butterfly', 
+                    'Perfect Conversationalist', 
+                    'Friend Magnet', 
+                    'Awkward Moments', 
+                    'Learning to Socialize'
+                ];
+
+                try {
+                    await Promise.all(possibleBadges.map(badgeName => 
+                        fetch('http://localhost:8587/api/candyland/increment_attempts', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({ game_id: badgeName })
+                        })
+                    ));
+                    console.log("Social attempts logged for rarity denominator.");
+                } catch (e) {
+                    console.error("Failed to log attempts in JinjaAdmin:", e);
+                }
+
+                render(); // Start the first dialogue
+            });
 
             function render() {
                 const current = interactions[index];
@@ -501,20 +570,13 @@ permalink: /candyland/hotchocolate
                 if (answered) return;
                 answered = true;
 
-                // Track choice quality for badges
                 if (choice.value === 1) perfectChoices++;
                 if (choice.value === -1) badChoices++;
 
-                // disable buttons
                 Array.from(optionsEl.querySelectorAll('button')).forEach(b => b.disabled = true);
-
-                // update score (allow negatives internally; display clamped to 0)
                 score += choice.value;
                 scoreEl.textContent = Math.max(0, score) + ' / ' + maxScore;
-
-                // show feedback
                 resultEl.textContent = choice.feedback;
-
                 nextBtn.disabled = false;
             }
 
@@ -522,7 +584,6 @@ permalink: /candyland/hotchocolate
                 if (!answered) return;
                 index++;
                 if (index >= interactions.length) {
-                    // finished - show completion screen with badges
                     showCompletionScreen();
                 } else {
                     render();
@@ -533,70 +594,36 @@ permalink: /candyland/hotchocolate
                 const passed = score >= passThreshold;
                 earnedBadges = [];
 
-                // Determine badges
-                if (passed) {
-                    earnedBadges.push({ icon: '🎭', name: 'Social Butterfly' });
-                }
+                if (passed) earnedBadges.push({ icon: '🦋', name: 'Social Butterfly' });
+                if (perfectChoices === 4) earnedBadges.push({ icon: '💬', name: 'Perfect Conversationalist' });
+                if (score >= 3) earnedBadges.push({ icon: '🧲', name: 'Friend Magnet' });
+                if (badChoices >= 2) earnedBadges.push({ icon: '😅', name: 'Awkward Moments' });
+                if (score <= 0) earnedBadges.push({ icon: '🌱', name: 'Learning to Socialize' });
 
-                if (perfectChoices === 4) {
-                    earnedBadges.push({ icon: '💯', name: 'Perfect Conversationalist' });
-                }
-
-                if (score >= 3) {
-                    earnedBadges.push({ icon: '🌟', name: 'Friend Magnet' });
-                }
-
-                if (badChoices >= 2) {
-                    earnedBadges.push({ icon: '😅', name: 'Awkward Moments' });
-                }
-
-                if (score === 0 || score < 0) {
-                    earnedBadges.push({ icon: '💬', name: 'Learning to Socialize' });
-                }
-
-                // 2. SAVE SCORE TO BACKEND (Standardized name)
                 saveGameScore('hot_chocolate_score', score);
-
-                // Update completion screen
                 document.getElementById('finalScore').textContent = Math.max(0, score);
                 
-                if (passed) {
-                    document.getElementById('completionTitle').textContent = '🎉 Great Chat! 🎉';
-                    document.getElementById('completionMessage').textContent = 'You had a wonderful conversation with Joe Licorice!';
-                } else {
-                    document.getElementById('completionTitle').textContent = '😊 Nice Try! 😊';
-                    document.getElementById('completionMessage').textContent = 'Keep practicing your social skills!';
-                }
-
-                // Display badges AND SAVE THEM
                 const badgesDiv = document.getElementById('badgesEarned');
                 badgesDiv.innerHTML = '';
                 
-                if (earnedBadges.length > 0) {
-                    earnedBadges.forEach(badge => {
-                        // --- 3. SAVE BADGE TO DB ---
-                        saveBadge(badge.name, badge.icon);
-                        // --------------------------
-
-                        const badgeEl = document.createElement('div');
-                        badgeEl.className = 'badge-earned';
-                        badgeEl.textContent = `${badge.icon} ${badge.name}`;
-                        badgesDiv.appendChild(badgeEl);
-                    });
-                }
+                earnedBadges.forEach(badge => {
+                    saveBadge(badge.name, badge.icon);
+                    const badgeEl = document.createElement('div');
+                    badgeEl.className = 'badge-earned';
+                    badgeEl.textContent = `${badge.icon} ${badge.name}`;
+                    badgesDiv.appendChild(badgeEl);
+                });
 
                 completionScreen.classList.add('show');
             }
 
-            // Expose specific functions to window so the HTML onclick="" attributes work
             window.closeCompletion = function() {
                 completionScreen.classList.remove('show');
+                startScreen.style.display = 'flex'; // Go back to start screen
                 index = 0;
                 score = 0;
                 perfectChoices = 0;
                 badChoices = 0;
-                earnedBadges = [];
-                render();
             }
 
             window.nextModule = function() {
@@ -608,12 +635,9 @@ permalink: /candyland/hotchocolate
                 score = 0;
                 perfectChoices = 0;
                 badChoices = 0;
-                earnedBadges = [];
                 render();
             });
 
-            // Initial render call
-            render();
         })();
     </script>
 </body>
