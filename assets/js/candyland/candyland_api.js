@@ -87,3 +87,76 @@ export async function getBadgeUsernames(badgeId) {
         return [];
     }
 }
+
+// ... existing imports and code ...
+
+/**
+ * NEW: Fetches badges for the current user including rarity statistics.
+ * This should be used instead of viewBadges when you want to show 
+ * "Only 3% have earned this" in the UI.
+ */
+export async function viewBadgesWithRarity() {
+    try {
+        const response = await fetch(`${BASE_URL}/api/candyland/get_badges_with_rarity`, { 
+            method: 'GET', 
+            credentials: 'include' 
+        });
+        
+        if (response.ok) {
+            const badges = await response.json();
+            if (badges.length === 0) {
+                console.log("No badges found.");
+                return [];
+            }
+            
+            // You can return this data to a React/Vue component 
+            // or alert it for a quick test as done in your existing code
+            let message = "✨ BADGE RARITY REPORT ✨\n\n";
+            badges.forEach(b => { 
+                message += `${b.icon} ${b.name}: ${b.rarity_text}\n`; 
+            });
+            alert(message);
+            
+            return badges;
+        }
+    } catch (e) { 
+        console.error("Error fetching badges with rarity:", e); 
+        return [];
+    }
+}
+
+/**
+ * ADMIN: Triggers the backend to inject 50 mock users and random badges.
+ * Use this to quickly populate your "Administration Table" for the professor.
+ */
+export async function triggerMockDataInjection() {
+    try {
+        const response = await fetch(`${BASE_URL}/api/candyland/admin/inject_data`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            credentials: 'include'
+        });
+        if (response.ok) {
+            const data = await response.json();
+            alert(data.message);
+        }
+    } catch (e) {
+        console.error("Error injecting mock data:", e);
+    }
+}
+
+export async function triggerClearData() {
+    try {
+        const response = await fetch(`${BASE_URL}/api/candyland/admin/clear_data`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            credentials: 'include'
+        });
+        if (response.ok) {
+            const data = await response.json();
+            alert(data.message);
+        }
+    } catch (e) {
+        console.error("Error clearing data:", e);
+    }
+}

@@ -1,13 +1,15 @@
 HOST ?= localhost
 PORT ?= 4500
 LOG_FILE = /tmp/jekyll$(PORT).log
+BUNDLE_PATH ?= vendor/bundle
 
 SHELL = /usr/bin/env bash
 .SHELLFLAGS = -e -o pipefail -c
 
 # Python interpreter used for conversion scripts.
 # Auto-detect local virtual environment if present; override with `make PYTHON=/path/to/python`.
-PYTHON ?= $(shell if [ -x "$(CURDIR)/../venv/bin/python" ]; then echo "$(CURDIR)/../venv/bin/python"; elif [ -x "$(CURDIR)/venv/bin/python" ]; then echo "$(CURDIR)/venv/bin/python"; else command -v python3; fi)
+VENV_DIR ?= .venv
+PYTHON ?= $(shell if [ -x "$(CURDIR)/$(VENV_DIR)/bin/python" ]; then echo "$(CURDIR)/$(VENV_DIR)/bin/python"; elif [ -x "$(CURDIR)/../venv/bin/python" ]; then echo "$(CURDIR)/../venv/bin/python"; elif [ -x "$(CURDIR)/venv/bin/python" ]; then echo "$(CURDIR)/venv/bin/python"; else command -v python3; fi)
 
 define _echo_py
 @echo "Using Python interpreter: $(PYTHON)"
@@ -129,7 +131,18 @@ serve-yat: use-yat clean
 serve-current: stop convert
 	$(_echo_py)
 	@echo "Starting server with current config/Gemfile..."
-	@nohup bundle install && bundle exec jekyll serve -H $(HOST) -P $(PORT) > $(LOG_FILE) 2>&1 & \
+	@if ! command -v bundle >/dev/null 2>&1; then \
+		echo "❌ Missing Ruby Bundler: 'bundle' not found."; \
+		echo "   Install Ruby + Bundler, then re-run make."; \
+		echo "   Ubuntu/Debian: sudo apt-get update && sudo apt-get install -y ruby-full build-essential"; \
+		echo "                 gem install bundler"; \
+		echo "   macOS (Homebrew): brew install ruby"; \
+		echo "                    gem install bundler"; \
+		exit 1; \
+	fi
+	@mkdir -p "$(dir $(LOG_FILE))" && : > "$(LOG_FILE)"
+	@BUNDLE_PATH="$(BUNDLE_PATH)" bundle install
+	@nohup env BUNDLE_PATH="$(BUNDLE_PATH)" bundle exec jekyll serve -H $(HOST) -P $(PORT) > $(LOG_FILE) 2>&1 & \
 		PID=$$!; \
 		echo "Server PID: $$PID"
 	@until [ -f $(LOG_FILE) ]; do sleep 1; done
@@ -157,9 +170,18 @@ build-yat: use-yat build-current
 
 build-current: clean
 	$(_echo_py)
-	@bundle install
-	@bundle exec jekyll clean
-	@bundle exec jekyll build
+	@if ! command -v bundle >/dev/null 2>&1; then \
+		echo "❌ Missing Ruby Bundler: 'bundle' not found."; \
+		echo "   Install Ruby + Bundler, then re-run make build (or make)."; \
+		echo "   Ubuntu/Debian: sudo apt-get update && sudo apt-get install -y ruby-full build-essential"; \
+		echo "                 gem install bundler"; \
+		echo "   macOS (Homebrew): brew install ruby"; \
+		echo "                    gem install bundler"; \
+		exit 1; \
+	fi
+	@BUNDLE_PATH="$(BUNDLE_PATH)" bundle install
+	@BUNDLE_PATH="$(BUNDLE_PATH)" bundle exec jekyll clean
+	@BUNDLE_PATH="$(BUNDLE_PATH)" bundle exec jekyll build
 
 # General serve/build for whatever is current
 serve: serve-current
@@ -305,9 +327,17 @@ convert-fix: check-deps
 check-deps:
 	@$(PYTHON) scripts/check_python_deps.py
 
-install-deps:
-	@echo "Installing required Python packages into interpreter: $(PYTHON)"; \
-	$(PYTHON) -m pip install --upgrade mammoth pillow python-docx markdownify >/dev/null && echo "✓ Dependencies installed" || echo "⚠ Failed to install some packages";
+
+venv:
+	@if [ ! -d "$(VENV_DIR)" ]; then \
+		echo "Creating virtualenv at $(VENV_DIR)..."; \
+		python3 -m venv "$(VENV_DIR)"; \
+	fi
+	@"$(VENV_DIR)/bin/python" -m pip install --upgrade pip >/dev/null
+
+install-deps: venv
+	@echo "Installing required Python packages into interpreter: $(VENV_DIR)/bin/python"; \
+	"$(VENV_DIR)/bin/python" -m pip install --upgrade mammoth pillow python-docx markdownify && echo "✓ Dependencies installed" || (echo "⚠ Failed to install some packages"; exit 1)
 	@echo "Running conversion fixes..."
 	@echo "️Fixing notebooks with known warnings or errors..."
 	@$(PYTHON) scripts/check_conversion_warnings.py --fix

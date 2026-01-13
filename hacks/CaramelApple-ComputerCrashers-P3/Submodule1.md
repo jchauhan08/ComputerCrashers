@@ -53,6 +53,39 @@ permalink: /candyland/morningroutine
         padding: 40px;
         text-align: center;
         position: relative;
+        min-height: 600px;
+    }
+
+    /* --- NEW: START SCREEN STYLING --- */
+    #start-screen {
+        position: absolute;
+        inset: 0;
+        background: white;
+        z-index: 100;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        border-radius: 20px;
+        padding: 20px;
+    }
+
+    .start-btn {
+        background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+        color: white;
+        border: none;
+        padding: 20px 40px;
+        font-size: 1.5rem;
+        font-family: var(--font-title);
+        border-radius: 15px;
+        cursor: pointer;
+        transition: transform 0.2s, box-shadow 0.2s;
+        box-shadow: 0 4px 15px rgba(245, 87, 108, 0.4);
+    }
+
+    .start-btn:hover {
+        transform: scale(1.05);
+        box-shadow: 0 6px 20px rgba(245, 87, 108, 0.6);
     }
 
     .game-header { margin-bottom: 30px; }
@@ -271,6 +304,13 @@ permalink: /candyland/morningroutine
 <body>
 
 <div class="game-container">
+    <!-- START SCREEN OVERLAY (NEW) -->
+    <div id="start-screen">
+        <h1 class="game-title">Morning Routine</h1>
+        <p style="margin-bottom: 30px; font-weight: bold; font-size: 1.1rem;">Click below to begin your quest!</p>
+        <button class="start-btn" id="start-game-btn">Start Game</button>
+    </div>
+
     <div class="game-header">
         <h1 class="game-title">
             <span id="game-round-title">Morning Routine — Round 1/5</span>
@@ -298,12 +338,44 @@ permalink: /candyland/morningroutine
 </div>
 
 <script type="module">
-    // IMPORT - Keep your existing import
     import { saveGameScore , saveBadge } from '/assets/js/candyland/candyland_api.js';
 
     document.addEventListener('DOMContentLoaded', () => {
 
-        // --- CONFIGURATION (UNCHANGED) ---
+        const startScreen = document.getElementById('start-screen');
+        const startBtn = document.getElementById('start-game-btn');
+
+        // --- PHASE 1: START GAME & LOG ATTEMPTS ---
+        startBtn.addEventListener('click', async () => {
+            startScreen.style.display = 'none';
+
+            // List of all 5 badges the user could potentially earn
+            const possibleBadges = [
+                'Perfect Morning', 
+                'Sharp Memory', 
+                'Morning Star', 
+                'Still Sleepy', 
+                'Careful Observer'
+            ];
+
+            // Pings the Jinja Admin Table to log an attempt for EVERY badge
+            try {
+                await Promise.all(possibleBadges.map(badgeName => 
+                    fetch('http://localhost:8587/api/candyland/increment_attempts', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ game_id: badgeName })
+                    })
+                ));
+                console.log("Global attempts logged for rarity denominator.");
+            } catch (e) {
+                console.error("Failed to log attempts in JinjaAdmin:", e);
+            }
+
+            initGame(); // Begin the actual logic
+        });
+
+        // --- CONFIGURATION ---
         const imagePaths = {
             "Candy Cane Toothbrush": "/images/tb2.png",
             "Marshmallow Soap": "/images/soap2.png",
@@ -322,13 +394,13 @@ permalink: /candyland/morningroutine
             { round: 5, instruction: "Find the Breakfast Bar!", correctItem: "Breakfast Bar" }
         ];
 
-        // --- STATE VARIABLES (ADDED BADGE TRACKING) ---
+        // --- STATE VARIABLES ---
         let currentRound = 0;
         let score = 0;
         let isProcessing = false; 
         let attempts = 0;
-        let totalAttempts = 0; // NEW: Track total attempts across all rounds
-        let firstTryCorrect = 0; // NEW: Track first-try correct answers
+        let totalAttempts = 0; 
+        let firstTryCorrect = 0; 
 
         const grid = document.getElementById('items-grid');
         const instructionText = document.getElementById('instruction-text');
@@ -344,7 +416,6 @@ permalink: /candyland/morningroutine
             return array;
         }
 
-        // --- INITIALIZATION (UNCHANGED) ---
         function initGame() {
             const allItems = Object.keys(imagePaths);
             const boardLayout = shuffle([...allItems]);
@@ -372,13 +443,9 @@ permalink: /candyland/morningroutine
         }
 
         function startRound() {
-            // --- GAME OVER LOGIC (MODIFIED TO SHOW BADGES) ---
             if (currentRound >= gameData.length) {
-                
-                // KEEP YOUR SAVE SCORE LOGIC
                 saveGameScore('morning_routine_score', score);
-
-                showGameOver(); // NEW: Show badges screen
+                showGameOver(); 
                 return;
             }
 
@@ -404,21 +471,15 @@ permalink: /candyland/morningroutine
 
             clickedCard.classList.add('flipped');
             attempts++;
-            totalAttempts++; // NEW: Track total
+            totalAttempts++; 
 
             const selectedItem = clickedCard.dataset.name;
             const correctItem = gameData[currentRound].correctItem;
             const innerCard = clickedCard.querySelector('.card-inner');
 
             if (selectedItem === correctItem) {
-                // NEW: Track first-try correct
-                if (attempts === 1) {
-                    firstTryCorrect++;
-                }
-
-                if (attempts <= 2) {
-                    score++;
-                }
+                if (attempts === 1) firstTryCorrect++;
+                if (attempts <= 2) score++;
                 
                 scoreDisplay.textContent = `Score: ${score}`;
                 innerCard.classList.add('correct');
@@ -441,32 +502,15 @@ permalink: /candyland/morningroutine
             }
         }
 
-        // NEW: Show completion screen with badges
         function showGameOver() {
             const earnedBadges = [];
 
-            // Badge Logic - Option B
-            if (score === 5) {
-                earnedBadges.push({ icon: '🏆', name: 'Perfect Morning' });
-            }
+            if (score === 5) earnedBadges.push({ icon: '🏆', name: 'Perfect Morning' });
+            if (firstTryCorrect >= 4) earnedBadges.push({ icon: '🎯', name: 'Sharp Memory' });
+            if (score >= 4) earnedBadges.push({ icon: '⭐', name: 'Morning Star' });
+            if (score <= 2) earnedBadges.push({ icon: '🐌', name: 'Still Sleepy' });
+            if (totalAttempts <= 15) earnedBadges.push({ icon: '🔍', name: 'Careful Observer' });
 
-            if (firstTryCorrect >= 4) {
-                earnedBadges.push({ icon: '🎯', name: 'Sharp Memory' });
-            }
-
-            if (score >= 4) {
-                earnedBadges.push({ icon: '⭐', name: 'Morning Star' });
-            }
-
-            if (score <= 2) {
-                earnedBadges.push({ icon: '🐌', name: 'Still Sleepy' });
-            }
-
-            if (totalAttempts <= 15) {
-                earnedBadges.push({ icon: '🔍', name: 'Careful Observer' });
-            }
-
-            // Update modal
             document.getElementById('final-score').textContent = score;
             
             if (score === 5) {
@@ -480,31 +524,24 @@ permalink: /candyland/morningroutine
                 document.getElementById('completion-message').textContent = 'Keep practicing your memory!';
             }
 
-            // Display badges
             const badgesDiv = document.getElementById('badgesEarned');
             badgesDiv.innerHTML = '';
             
-            if (earnedBadges.length > 0) {
-                earnedBadges.forEach(badge => {
-                    // --- Save to DB ---
-                    saveBadge(badge.name, badge.icon); 
-                    // ---------
-                    const badgeEl = document.createElement('div');
-                    badgeEl.className = 'badge-earned';
-                    badgeEl.textContent = `${badge.icon} ${badge.name}`;
-                    badgesDiv.appendChild(badgeEl);
-                });
-            }
+            earnedBadges.forEach(badge => {
+                saveBadge(badge.name, badge.icon); 
+                const badgeEl = document.createElement('div');
+                badgeEl.className = 'badge-earned';
+                badgeEl.textContent = `${badge.icon} ${badge.name}`;
+                badgesDiv.appendChild(badgeEl);
+            });
 
             gameOverModal.style.display = 'flex';
         }
 
-        // NEW: Next module function
         window.nextModule = function() {
             window.location.href = '/candyland/workmaze';
         };
 
-        // NEW: Retry function
         window.retryGame = function() {
             currentRound = 0;
             score = 0;
@@ -513,25 +550,19 @@ permalink: /candyland/morningroutine
             gameOverModal.style.display = 'none';
             initGame();
         };
-
-        initGame();
     });
 
-    // --- LOGOUT LOGIC (UNCHANGED) ---
     window.logout = async function() {
         try {
             await fetch('http://localhost:8587/api/candyland/logout', { 
                 method: 'POST',
                 credentials: 'include' 
             });
-            console.log("Logout successful");
+            window.location.href = '/candyland/login';
         } catch(e) { 
             console.log("Logout error", e); 
         }
-        
-        window.location.href = '/candyland/login';
     }
-
 </script>
 
 </body>

@@ -536,7 +536,8 @@ tags: [caramel, party, quest, finale]
 
     <script type="module">
 
-        import { saveGameScore, viewScores, viewBadges, getBadgeUsernames } from '{{ '/assets/js/candyland/candyland_api.js' | relative_url }}';
+        // ADDED triggerClearData TO IMPORTS
+        import { saveGameScore, viewScores, viewBadges, getBadgeUsernames, triggerMockDataInjection, triggerClearData } from '{{ '/assets/js/candyland/candyland_api.js' | relative_url }}';
         window.viewScores = viewScores;
 
         const room = document.getElementById('partyRoom');
@@ -564,8 +565,8 @@ tags: [caramel, party, quest, finale]
             badgesGrid.innerHTML = '<p style="grid-column: 1/-1; text-align: center;">Loading collection...</p>';
             
             try {
-                // Call your backend API to get badge types
-                const response = await fetch('http://localhost:8587/api/candyland/get_badges', {
+                // MODIFIED: Fetching badges with rarity metadata
+                const response = await fetch('http://localhost:8587/api/candyland/get_badges_with_rarity', {
                     method: 'GET',
                     credentials: 'include'
                 });
@@ -590,22 +591,26 @@ tags: [caramel, party, quest, finale]
                         const badgeEl = document.createElement('div');
                         badgeEl.className = 'badge-item earned'; 
                         
-                        // Structure: Icon, Name, and an invisible Tooltip
+                        // MODIFIED: Added rarity text and content container for winners
                         badgeEl.innerHTML = `
                             <div class="badge-icon">${badge.icon}</div>
                             <div class="badge-name">${badge.name}</div>
-                            <div class="badge-tooltip">Loading winners...</div>
+                            <div class="badge-tooltip">
+                                <div style="color: #ffd700; font-weight: bold; margin-bottom: 4px;">${badge.rarity_text}</div>
+                                <div class="winner-list-content">Loading...</div>
+                            </div>
                         `;
 
-                        // PREFETCH STRATEGY: 
-                        // Instead of waiting for hover, we call the API right now.
-                        // By the time the user hovers, the data will likely be there.
+                        // UPDATED LOGIC: Truncates user list with "..."
                         getBadgeUsernames(badge.id).then(winners => {
-                            const tooltip = badgeEl.querySelector('.badge-tooltip');
+                            const winnerDiv = badgeEl.querySelector('.winner-list-content');
                             if (winners && winners.length > 0) {
-                                tooltip.innerHTML = `<strong>Earned by:</strong><br>${winners.join(', ')}`;
+                                const maxShown = 4; // Show first 4 names
+                                const displayNames = winners.slice(0, maxShown).join(', ');
+                                const ellipsis = winners.length > maxShown ? ', ...' : '';
+                                winnerDiv.innerHTML = `<strong>Earned by:</strong><br>${displayNames}${ellipsis}`;
                             } else {
-                                tooltip.innerHTML = "No winners yet";
+                                winnerDiv.innerHTML = "No winners yet";
                             }
                         }).catch(err => {
                             console.error("Prefetch failed", err);
@@ -784,7 +789,36 @@ tags: [caramel, party, quest, finale]
             }
         });
 
+        // --- NEW: SECRET ADMIN KEYSTROKES ---
+        window.addEventListener('keydown', async (e) => {
+            if (e.shiftKey && e.altKey) {
+                const key = e.key.toLowerCase();
+                
+                // SHIFT + ALT + I (Inject Data)
+                if (key === 'i') {
+                    const confirmed = confirm("ADMIN: Inject mock users for rarity calculation?");
+                    if (confirmed) {
+                        await triggerMockDataInjection();
+                        if (badgesOverlay.classList.contains('show')) {
+                            fetchAndDisplayBadges(); 
+                        }
+                    }
+                }
+                
+                // SHIFT + ALT + C (Clear Data)
+                else if (key === 'c') {
+                    const confirmed = confirm("ADMIN: Clear all mock data and reset rarity statistics?");
+                    if (confirmed) {
+                        await triggerClearData();
+                        if (badgesOverlay.classList.contains('show')) {
+                            fetchAndDisplayBadges(); 
+                        }
+                    }
+                }
+            }
+        });
+
         updateProgress();
     </script>
 </body>
-</html>
+</html> 
