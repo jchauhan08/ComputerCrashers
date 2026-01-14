@@ -29,7 +29,6 @@ export async function viewScores() {
 // --- NEW: BADGES ---
 export async function saveBadge(badgeName, badgeIcon) {
     try {
-        // We send the data exactly as your frontend generates it
         const response = await fetch(`${BASE_URL}/api/candyland/save_badge`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
@@ -45,37 +44,27 @@ export async function saveBadge(badgeName, badgeIcon) {
     }
 }
 
-// Helper function to view all badges (can be used on a dashboard)
 export async function viewBadges() {
     try {
         const response = await fetch(`${BASE_URL}/api/candyland/get_badges`, { method: 'GET', credentials: 'include' });
         if (response.ok) {
             const badges = await response.json();
             if (badges.length === 0) { alert("No badges yet!"); return; }
-            
             let message = "✨ YOUR BADGE COLLECTION ✨\n\n";
             badges.forEach(b => { message += `${b.icon} ${b.name}\n`; });
             alert(message);
         }
-    } catch(e) { console.error("Error fetching badges:", e); }
+    } catch (e) { console.error("Error fetching badges:", e); }
 }
-
-// ... existing imports and code ...
 
 export async function getBadgeUsernames(badgeId) {
     try {
-        // Adjust the URL if your backend endpoint is different
-        // Passing badge_id as a query parameter
         const response = await fetch(`http://localhost:8587/api/candyland/badge_owners?badge_id=${badgeId}`, {
             method: 'GET',
             credentials: 'include',
-            headers: {
-                'Content-Type': 'application/json'
-            }
+            headers: { 'Content-Type': 'application/json' }
         });
-
         if (response.ok) {
-            // Returns an array of strings, e.g., ["Rishabh", "John"]
             const usernames = await response.json();
             return usernames;
         } else {
@@ -88,35 +77,23 @@ export async function getBadgeUsernames(badgeId) {
     }
 }
 
-// ... existing imports and code ...
-
-/**
- * NEW: Fetches badges for the current user including rarity statistics.
- * This should be used instead of viewBadges when you want to show 
- * "Only 3% have earned this" in the UI.
- */
 export async function viewBadgesWithRarity() {
     try {
         const response = await fetch(`${BASE_URL}/api/candyland/get_badges_with_rarity`, { 
             method: 'GET', 
             credentials: 'include' 
         });
-        
         if (response.ok) {
             const badges = await response.json();
             if (badges.length === 0) {
                 console.log("No badges found.");
                 return [];
             }
-            
-            // You can return this data to a React/Vue component 
-            // or alert it for a quick test as done in your existing code
             let message = "✨ BADGE RARITY REPORT ✨\n\n";
             badges.forEach(b => { 
                 message += `${b.icon} ${b.name}: ${b.rarity_text}\n`; 
             });
             alert(message);
-            
             return badges;
         }
     } catch (e) { 
@@ -125,10 +102,6 @@ export async function viewBadgesWithRarity() {
     }
 }
 
-/**
- * ADMIN: Triggers the backend to inject 50 mock users and random badges.
- * Use this to quickly populate your "Administration Table" for the professor.
- */
 export async function triggerMockDataInjection() {
     try {
         const response = await fetch(`${BASE_URL}/api/candyland/admin/inject_data`, {
@@ -158,5 +131,22 @@ export async function triggerClearData() {
         }
     } catch (e) {
         console.error("Error clearing data:", e);
+    }
+}
+
+// --- PHASE 2: TRIGGER BACKUP ---
+export async function triggerBackup() {
+    try {
+        const response = await fetch(`${BASE_URL}/api/candyland/admin/backup`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            credentials: 'include'
+        });
+        if (response.ok) {
+            const data = await response.json();
+            alert(data.message + "\nCheck backend folder for rarity_snapshot.json");
+        }
+    } catch (e) {
+        console.error("Error triggering backup:", e);
     }
 }
